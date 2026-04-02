@@ -152,8 +152,6 @@ td{padding:11px 12px;vertical-align:middle;}
 .badge.record{background:#edfff5;color:#007a3d;border:1px solid #80d4a8;}
 .badge.event{background:#eef4ff;color:#1a6fcc;border:1px solid #9dbfee;}
 .hot-badge{font-size:13px;margin-right:3px;vertical-align:middle;line-height:1;}
-.td-title{font-size:14px;font-weight:700;cursor:pointer;transition:color .15s;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:0;}
-.td-title:hover{color:var(--accent);}
 .featured-row .td-title{font-weight:900;color:var(--text);}
 .featured-row{background:#fffdf5;}
 .featured-row:hover{background:#fff8e8!important;}
@@ -527,7 +525,7 @@ tbody tr.clickable:hover .td-title{color:var(--accent);}
 
     <div class="footer-copy">
       <p>게임와이(GameY) 모든 콘텐츠(영상, 기사, 사진)는 저작권법의 보호를 받는 바, 무단 전재와 복사, 배포 등을 금합니다.</p>
-      <p>Copyright © 2026 게임와이(GameY). All rights reserved. <a href="/cdn-cgi/l/email-protection#1077717d755077717d75693e7b62"><span class="__cf_email__" data-cfemail="accbcdc1c9eccbcdc1c9d582c7de">[email&#160;protected]</span></a></p>
+      <p>Copyright © 2026 게임와이(GameY). All rights reserved. <a href="mailto:game@gamey.kr">game@gamey.kr</a></p>
     </div>
   </div>
 </footer>
@@ -562,14 +560,14 @@ tbody tr.clickable:hover .td-title{color:var(--accent);}
 
 <div class="toast" id="toast"></div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 /* ============================================================
    ★ 여기만 수정하면 실제 데이터 연동 완료
    ============================================================ */
 const API_KEY = 'AIzaSyAaiSdUHdN0HoWv8wHHcMUru9mmm9JG3NQ';
 
 const CALENDAR_IDS = {
-  '게임 출시':  'gameykr2014' + '@' + 'gmail.com',
+  '게임 출시':  'gameykr2014@gmail.com',
   '게임 테스트':'f2880cff5e99faebaf4d5184738db9414935f9468e61e0bb10bcec8d586ec9c5@group.calendar.google.com',
   '게임 예약':  'd5fccae3b724970effa9b7882a51e81bbbaefa3b6b572159d8f683e32d42f40c@group.calendar.google.com',
   '게임 기록':  'e4f85cc2ea47dde5db3dc375623fbc187a9965fd935d8eb0e51cd2f3df284567@group.calendar.google.com',
@@ -721,10 +719,7 @@ async function fetchCalendar(cat, calId, timeMin, timeMax) {
     throw new Error(`[${cat}] ${res.status}: ${msg}`);
   }
   const data = await res.json();
-  return (data.items||[]).map(item => {
-    try { return parseEvent(item, cat); }
-    catch(e) { console.warn('[GameY] parseEvent 오류:', item?.summary, e); return null; }
-  }).filter(Boolean);
+  return (data.items||[]).map(item => parseEvent(item, cat));
 }
 
 async function loadMonth() {
@@ -929,13 +924,10 @@ function renderTable() {
 function stripHtml(html) {
   return html
     .replace(/<a\s+[^>]*href=["']([^"']+)["'][^>]*>[^<]*<\/a>/gi, '$1')
-    .replace(/<\/p>|<\/div>|<\/li>|<br\s*\/?>/gi, '\n')
-    .replace(/<p[^>]*>|<div[^>]*>|<li[^>]*>|<ul[^>]*>|<ol[^>]*>|<\/ul>|<\/ol>/gi, '')
+    .replace(/<\/p>|<\/div>|<br\s*\/?>/gi, '\n')
+    .replace(/<p[^>]*>|<div[^>]*>/gi, '')
     .replace(/<[^>]+>/g, '')
     .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'")
-    .replace(/__([^_]+)__/g, '$1')  // 마크다운 __굵게__ 제거
-    .replace(/\*\*([^*]+)\*\*/g, '$1')  // 마크다운 **굵게** 제거
-    .replace(/^\s*[\*\-]\s/gm, '')  // 줄 앞 * - 불릿 제거
     .replace(/\n{3,}/g, '\n\n').trim();
 }
 function parseDesc(raw) {
@@ -1380,4 +1372,17 @@ window.addEventListener('load', ()=>{ if(window.google) initGoogleLogin(); });
     if (parts.length === 3) {
       const y = parseInt(parts[0]), m = parseInt(parts[1]), d = parseInt(parts[2]);
       if (y > 2000 && m >= 1 && m <= 12 && d >= 1 && d <= 31) {
-        curYear
+        curYear  = y;
+        curMonth = m;
+        window._highlightDay  = d;
+        window._autoOpenTitle = titleParam ? decodeURIComponent(titleParam) : null;
+      }
+    }
+  }
+})();
+
+renderMonthGrid();
+loadMonth();
+</script>
+</body>
+</html>
