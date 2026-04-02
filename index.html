@@ -527,7 +527,7 @@ tbody tr.clickable:hover .td-title{color:var(--accent);}
 
     <div class="footer-copy">
       <p>게임와이(GameY) 모든 콘텐츠(영상, 기사, 사진)는 저작권법의 보호를 받는 바, 무단 전재와 복사, 배포 등을 금합니다.</p>
-      <p>Copyright © 2026 게임와이(GameY). All rights reserved. <a href="/cdn-cgi/l/email-protection#056264686045626468607c2b6e77"><span class="__cf_email__" data-cfemail="3750565a527750565a524e195c45">[email&#160;protected]</span></a></p>
+      <p>Copyright © 2026 게임와이(GameY). All rights reserved. <a href="/cdn-cgi/l/email-protection#94f3f5f9f1d4f3f5f9f1edbaffe6"><span class="__cf_email__" data-cfemail="81e6e0ece4c1e6e0ece4f8afeaf3">[email&#160;protected]</span></a></p>
     </div>
   </div>
 </footer>
@@ -1296,10 +1296,7 @@ let _searchTimer = null;
 function doSearch(q) {
   q = (q||'').trim();
   const meta = document.getElementById('searchMeta');
-  const body = document.getElementById('searchBody');
-  if (!q) {
-    meta.innerHTML = '일정을 검색하세요';
-    body.innerHTML = '<div class="search-empty"><div class="search-empty-icon">🔍</div>검색어를 입력하면 전체 일정에서 찾아드립니다</div>';
+  const body = document.get��립니다</div>';
     return;
   }
   // 현재 로드된 allEvents + 기타 월 캐시 합산
@@ -1375,4 +1372,17 @@ window.addEventListener('load', ()=>{ if(window.google) initGoogleLogin(); });
     if (parts.length === 3) {
       const y = parseInt(parts[0]), m = parseInt(parts[1]), d = parseInt(parts[2]);
       if (y > 2000 && m >= 1 && m <= 12 && d >= 1 && d <= 31) {
-        curYear
+        curYear  = y;
+        curMonth = m;
+        window._highlightDay  = d;
+        window._autoOpenTitle = titleParam ? decodeURIComponent(titleParam) : null;
+      }
+    }
+  }
+})();
+
+renderMonthGrid();
+loadMonth();
+</script>
+</body>
+</html>
