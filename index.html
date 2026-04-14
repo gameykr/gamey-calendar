@@ -154,10 +154,17 @@ body { font-family: 'Noto Sans KR', sans-serif; background: var(--gray-50); colo
 
 .ypick-scroll {
   display: flex; gap: 12px;
-  overflow-x: auto; scrollbar-width: none;
-  padding-bottom: 4px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-behavior: smooth;
 }
-.ypick-scroll::-webkit-scrollbar { display: none; }
+.ypick-scroll::-webkit-scrollbar { height: 4px; }
+.ypick-scroll::-webkit-scrollbar-track { background: var(--gray-100); border-radius: 2px; }
+.ypick-scroll::-webkit-scrollbar-thumb { background: var(--gray-300,#ccc); border-radius: 2px; }
+.ypick-scroll::-webkit-scrollbar-thumb:hover { background: var(--orange); }
+@media (min-width: 768px) {
+  .ypick-scroll { scrollbar-width: thin; scrollbar-color: #ccc var(--gray-100); }
+}
 
 .ypick-card {
   flex-shrink: 0;
@@ -356,7 +363,7 @@ body { font-family: 'Noto Sans KR', sans-serif; background: var(--gray-50); colo
 /* ════════════════════════════════════
    SIDEBAR (PC)
 ════════════════════════════════════ */
-.sidebar-left, .sidebar-right { display: none; }
+.sidebar-right { display: none; }
 
 .widget {
   background: white; border: 1px solid var(--gray-200);
@@ -486,21 +493,13 @@ body { font-family: 'Noto Sans KR', sans-serif; background: var(--gray-50); colo
   .page {
     padding: 28px 32px 48px;
     display: grid;
-    grid-template-columns: 220px 1fr 280px;
+    grid-template-columns: 1fr 280px;
     gap: 24px; align-items: start;
   }
 
-  .sidebar-left {
-    display: block;
-    position: sticky; top: calc(60px + 53px + 16px);
-    background: white; border: 1px solid var(--gray-200);
-    border-radius: 16px; overflow: hidden;
-  }
-  .sidebar-left .widget {
-    border: none; border-radius: 0;
-    border-bottom: 1px solid var(--gray-100); margin-bottom: 0;
-  }
-  .sidebar-left .widget:last-child { border-bottom: none; }
+  
+  
+  
 
   .sidebar-right {
     display: block;
@@ -1257,44 +1256,23 @@ img {
 <!-- ════ PAGE ════ -->
 <div class="page">
 
-  <!-- LEFT SIDEBAR -->
-  <aside class="sidebar-left">
-    <div class="widget" style="padding:20px">
-      <div class="mini-cal-header">
-        <span class="mini-cal-month" id="sideCalTitle"></span>
-        <div class="mini-cal-navs">
-          <button onclick="sideCalNav(-1)">‹</button>
-          <button onclick="sideCalNav(1)">›</button>
-        </div>
-      </div>
-      <div class="mini-cal-grid" id="sideCalGrid"></div>
-    </div>
-    <div class="widget" style="padding:20px">
-      <div class="widget-title"><div class="widget-dot"></div>카테고리</div>
-      <div id="sideNavCat"></div>
-    </div>
-    <div class="widget" style="padding:20px">
-      <div class="widget-title"><div class="widget-dot"></div>플랫폼</div>
-      <div class="snav-item active" onclick="filterPlatSide(this,'전체')"><div class="snav-left">전체</div></div>
-      <div class="snav-item" id="side-PC" onclick="filterPlatSide(this,'PC')"><div class="snav-left">PC</div></div>
-      <div class="snav-item" id="side-PS" onclick="filterPlatSide(this,'PS')"><div class="snav-left">PlayStation</div></div>
-      <div class="snav-item" id="side-XB" onclick="filterPlatSide(this,'XB')"><div class="snav-left">Xbox</div></div>
-      <div class="snav-item" id="side-NS" onclick="filterPlatSide(this,'NS')"><div class="snav-left">Nintendo Switch</div></div>
-      <div class="snav-item" id="side-MO" onclick="filterPlatSide(this,'MO')"><div class="snav-left">Mobile</div></div>
-    </div>
-  </aside>
-
-  <!-- MAIN CONTENT -->
+    <!-- MAIN CONTENT -->
   <div class="content-wrap">
 
     <!-- Y PICK -->
     <div class="ypick-section" id="ypickSection">
-      <div class="ypick-header">
+      <div class="ypick-header" style="position:relative">
         <div class="ypick-title">
           <span class="ypick-badge">★ GAMEY PICK</span>
           이달의 주목작
         </div>
         <span class="ypick-sub" id="ypickCount"></span>
+        <div style="display:flex;gap:4px;margin-left:8px">
+          <button onclick="document.getElementById('ypickScroll').scrollBy({left:-220,behavior:'smooth'})"
+            style="width:28px;height:28px;border-radius:50%;border:1.5px solid var(--gray-200);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--gray-600)">‹</button>
+          <button onclick="document.getElementById('ypickScroll').scrollBy({left:220,behavior:'smooth'})"
+            style="width:28px;height:28px;border-radius:50%;border:1.5px solid var(--gray-200);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--gray-600)">›</button>
+        </div>
       </div>
       <div class="ypick-scroll" id="ypickScroll"></div>
     </div>
