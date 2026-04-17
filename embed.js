@@ -8,39 +8,39 @@
 (function () {
   'use strict';
 
-  /* ──────────── 설정 ──────────── */
+  /* ──────────── \uC124\uC815 ──────────── */
   var TARGET_ID  = 'gamey-calendar-embed';
   var CAL_URL    = 'https://calendar.gamey.kr';
   var CACHE_KEY  = 'gameycal_embed_v1';
-  var CACHE_TTL  = 30 * 60 * 1000;        // 30분
-  var LOOKAHEAD  = 60;                    // 며칠 이후까지 조회
-  var SHOW_MAX   = 4;                     // 노출 카드 수
+  var CACHE_TTL  = 30 * 60 * 1000;        // 30\uBD84
+  var LOOKAHEAD  = 60;                    // \uBA70\uCE60 \uC774\uD6C4\uAE4C\uC9C0 \uC870\uD68C
+  var SHOW_MAX   = 4;                     // \uB178\uCD9C \uCE74\uB4DC \uC218
 
-  /* Cloudflare Scrape Shield 우회를 위해 문자열 분할 */
+  /* Cloudflare Scrape Shield \uC6B0\uD68C\uB97C \uC704\uD574 \uBB38\uC790\uC5F4 \uBD84\uD560 */
   var API_KEY = 'AIzaSy' + 'AaiSdUHdN0HoWv8wHHcMUru9mmm9JG3NQ';
   var CALS = {
-    '출시':   'gameykr' + '2014' + '@' + 'gmail.com',
-    '테스트': 'f2880cff5e99faebaf4d5184738db9414935f9468e61e0bb10bcec8d586ec9c5' + '@group.calendar.google.com',
-    '예약':   'd5fccae3b724970effa9b7882a51e81bbbaefa3b6b572159d8f683e32d42f40c' + '@group.calendar.google.com',
-    '기록':   'e4f85cc2ea47dde5db3dc375623fbc187a9965fd935d8eb0e51cd2f3df284567' + '@group.calendar.google.com',
-    '행사':   'f72981731cc97bd97de58680a9ea4efe1aa9054e4c7fbac4680b87b5917e5fed' + '@group.calendar.google.com'
+    '\uCD9C\uC2DC':   'gameykr' + '2014' + '@' + 'gmail.com',
+    '\uD14C\uC2A4\uD2B8': 'f2880cff5e99faebaf4d5184738db9414935f9468e61e0bb10bcec8d586ec9c5' + '@group.calendar.google.com',
+    '\uC608\uC57D':   'd5fccae3b724970effa9b7882a51e81bbbaefa3b6b572159d8f683e32d42f40c' + '@group.calendar.google.com',
+    '\uAE30\uB85D':   'e4f85cc2ea47dde5db3dc375623fbc187a9965fd935d8eb0e51cd2f3df284567' + '@group.calendar.google.com',
+    '\uD589\uC0AC':   'f72981731cc97bd97de58680a9ea4efe1aa9054e4c7fbac4680b87b5917e5fed' + '@group.calendar.google.com'
   };
   var COLOR = {
-    '출시':   '#e11d48',
-    '테스트': '#7c3aed',
-    '예약':   '#d97706',
-    '기록':   '#059669',
-    '행사':   '#2563eb'
+    '\uCD9C\uC2DC':   '#e11d48',
+    '\uD14C\uC2A4\uD2B8': '#7c3aed',
+    '\uC608\uC57D':   '#d97706',
+    '\uAE30\uB85D':   '#059669',
+    '\uD589\uC0AC':   '#2563eb'
   };
-  var DAYS = ['일', '월', '화', '수', '목', '금', '토'];
+  var DAYS = ['\uC77C', '\uC6D4', '\uD654', '\uC218', '\uBAA9', '\uAE08', '\uD1A0'];
 
-  /* ──────────── DOM 준비 ──────────── */
+  /* ──────────── DOM \uC900\uBE44 ──────────── */
   function ready(fn) {
     if (document.readyState !== 'loading') fn();
     else document.addEventListener('DOMContentLoaded', fn);
   }
 
-  /* ──────────── 유틸 ──────────── */
+  /* ──────────── \uC720\uD2F8 ──────────── */
   function esc(s) {
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -49,9 +49,9 @@
 
   function parseTitle(summary) {
     if (!summary) return '';
-    // 게임명(영어병기)[PC/NS] → 플랫폼 대괄호만 제거
+    // \uAC8C\uC784\uBA85(\uC601\uC5B4\uBCD1\uAE30)[PC/NS] → \uD50C\uB7AB\uD3FC \uB300\uAD04\uD638\uB9CC \uC81C\uAC70
     var s = summary.replace(/\s*\[[^\]]*\]\s*$/, '').trim();
-    // 영어병기 괄호는 남겨두되 너무 길면 제거
+    // \uC601\uC5B4\uBCD1\uAE30 \uAD04\uD638\uB294 \uB0A8\uACA8\uB450\uB418 \uB108\uBB34 \uAE38\uBA74 \uC81C\uAC70
     return s;
   }
 
@@ -62,10 +62,10 @@
     return m[1].split(/[\/,\s]+/).map(function (x) {
       x = x.toUpperCase();
       if (x === 'PC') return 'PC';
-      if (/^PS/.test(x) || x === '플스') return 'PS';
+      if (/^PS/.test(x) || x === '\uD50C\uC2A4') return 'PS';
       if (/^(XB|XS|XBOX)/.test(x)) return 'XB';
-      if (/^(NS|NSW|SWITCH|닌텐도)/.test(x)) return 'NS';
-      if (/^(MO|MOBILE|모바일|AOS|IOS|안드로이드)/.test(x)) return 'MO';
+      if (/^(NS|NSW|SWITCH|\uB2CC\uD150\uB3C4)/.test(x)) return 'NS';
+      if (/^(MO|MOBILE|\uBAA8\uBC14\uC77C|AOS|IOS|\uC548\uB4DC\uB85C\uC774\uB4DC)/.test(x)) return 'MO';
       return x;
     }).filter(Boolean);
   }
@@ -86,7 +86,7 @@
     return new Date(Date.UTC(y, m, d) - 9 * 3600000);
   }
 
-  /* ──────────── 데이터 로드 ──────────── */
+  /* ──────────── \uB370\uC774\uD130 \uB85C\uB4DC ──────────── */
   function loadFromCache() {
     try {
       var raw = localStorage.getItem(CACHE_KEY);
@@ -100,7 +100,7 @@
   function saveCache(events) {
     try {
       localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), events: events }));
-    } catch (e) { /* 용량 초과 등 무시 */ }
+    } catch (e) { /* \uC6A9\uB7C9 \uCD08\uACFC \uB4F1 \uBB34\uC2DC */ }
   }
 
   function fetchEvents() {
@@ -144,7 +144,7 @@
     });
   }
 
-  /* ──────────── 렌더 ──────────── */
+  /* ──────────── \uB80C\uB354 ──────────── */
   var CSS = [
     ':host { all: initial; display: block; font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif; color: #1a1e2a; }',
     '* { box-sizing: border-box; }',
@@ -171,7 +171,7 @@
     '.gcw-skel { padding: 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; }',
     '.gcw-skel-item { height: 72px; background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%); background-size: 200% 100%; border-radius: 4px; animation: gcw-shimmer 1.2s infinite; }',
     '@keyframes gcw-shimmer { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }',
-    /* 모바일 */
+    /* \uBAA8\uBC14\uC77C */
     '@media (max-width: 640px) {',
     '  .gcw-grid { grid-template-columns: repeat(2, 1fr); }',
     '  .gcw-skel { grid-template-columns: repeat(2, 1fr); }',
@@ -194,7 +194,7 @@
 
   function buildBody(events) {
     if (!events || !events.length) {
-      return '<div class="gcw-empty">예정된 일정이 없습니다</div>';
+      return '<div class="gcw-empty">\uC608\uC815\uB41C \uC77C\uC815\uC774 \uC5C6\uC2B5\uB2C8\uB2E4</div>';
     }
     var cards = events.map(function (ev) {
       var d = fmtDate(ev.date);
@@ -224,11 +224,11 @@
         '<div class="gcw-head">' +
           '<a class="gcw-brand" href="' + CAL_URL + '" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">' +
             '<span class="gcw-brand-ico">G</span>' +
-            '<span>게임와이 캘린더</span>' +
-            '<span class="gcw-brand-sub">· 다가오는 일정</span>' +
+            '<span>\uAC8C\uC784\uC640\uC774 \uCE98\uB9B0\uB354</span>' +
+            '<span class="gcw-brand-sub">\u00B7 \uB2E4\uAC00\uC624\uB294 \uC77C\uC815</span>' +
           '</a>' +
           '<a class="gcw-more" href="' + CAL_URL + '" target="_blank" rel="noopener">' +
-            '4월 전체 보기' +
+            '4\uC6D4 \uC804\uCCB4 \uBCF4\uAE30' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg>' +
           '</a>' +
         '</div>' +
@@ -237,12 +237,12 @@
     );
   }
 
-  /* ──────────── 부팅 ──────────── */
+  /* ──────────── \uBD80\uD305 ──────────── */
   function boot() {
     var host = document.getElementById(TARGET_ID);
     if (!host) return;
 
-    // Shadow DOM (지원 안 되면 일반 div 폴백)
+    // Shadow DOM (\uC9C0\uC6D0 \uC548 \uB418\uBA74 \uC77C\uBC18 div \uD3F4\uBC31)
     var root = host.shadowRoot || (host.attachShadow ? host.attachShadow({ mode: 'open' }) : host);
     if (root !== host) {
       root.innerHTML = '';
@@ -253,7 +253,7 @@
       wrap.innerHTML = buildHTML(buildSkeleton());
       root.appendChild(wrap);
     } else {
-      // Shadow DOM 미지원 폴백: scoped prefix 사용 (부모 CSS 간섭 가능성 존재)
+      // Shadow DOM \uBBF8\uC9C0\uC6D0 \uD3F4\uBC31: scoped prefix \uC0AC\uC6A9 (\uBD80\uBAA8 CSS \uAC04\uC12D \uAC00\uB2A5\uC131 \uC874\uC7AC)
       host.innerHTML = '<style>' + CSS.replace(/:host/g, '.gcw-host') + '</style>' +
                        '<div class="gcw-host">' + buildHTML(buildSkeleton()) + '</div>';
     }
@@ -261,7 +261,7 @@
     function apply(events) {
       var container = root.querySelector('.gcw');
       if (!container) return;
-      // head는 유지하고 body만 교체
+      // head\uB294 \uC720\uC9C0\uD558\uACE0 body\uB9CC \uAD50\uCCB4
       var head = container.querySelector('.gcw-head');
       container.innerHTML = '';
       if (head) container.appendChild(head);
@@ -270,7 +270,7 @@
       while (bodyDiv.firstChild) container.appendChild(bodyDiv.firstChild);
     }
 
-    // 캐시 우선 → 백그라운드 리프레시
+    // \uCE90\uC2DC \uC6B0\uC120 → \uBC31\uADF8\uB77C\uC6B4\uB4DC \uB9AC\uD504\uB808\uC2DC
     var cached = loadFromCache();
     if (cached) apply(cached);
 
