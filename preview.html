@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>게임와이 캘린더 · 메인 노출 위젯 미리보기</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    min-height: 100vh;
+    padding: 60px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #1f2937;
+  }
+  .label {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: #fff;
+    background: linear-gradient(135deg, #ff6b35, #e11d48);
+    padding: 4px 10px;
+    border-radius: 3px;
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #0f172a;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 36px;
+    text-align: center;
+    line-height: 1.6;
+  }
+  .widget-container {
+    width: 100%;
+    max-width: 520px;
+  }
+  .widget-container.mobile {
+    max-width: 340px;
+    margin-top: 36px;
+  }
+  .size-badge {
+    display: inline-block;
+    font-size: 10px;
+    color: #94a3b8;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    padding: 3px 8px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .size-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 520px;
+  }
+  .size-wrap.mobile {
+    max-width: 340px;
+  }
+  .footnote {
+    margin-top: 48px;
+    font-size: 12px;
+    color: #94a3b8;
+    text-align: center;
+    max-width: 520px;
+    line-height: 1.7;
+  }
+  .footnote a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .footnote a:hover { text-decoration: underline; }
+  .divider {
+    width: 40px;
+    height: 1px;
+    background: #cbd5e1;
+    margin: 14px auto;
+  }
+  @media (max-width: 640px) {
+    h1 { font-size: 17px; }
+    .subtitle { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<span class="label">WIDGET PREVIEW</span>
+<h1>게임와이 캘린더 · 메인 노출 위젯</h1>
+<p class="subtitle">gamey.kr 메인 "많이 본 뉴스" 위 슬롯에 삽입되는 위젯입니다.<br>실제 운영 시 보이는 모습 그대로입니다.</p>
+
+<div class="size-wrap">
+  <span class="size-badge">PC 뷰 · 최대 520px</span>
+  <div class="widget-container">
+    <div id="gamey-calendar-embed-pc"></div>
+  </div>
+</div>
+
+<div class="size-wrap mobile">
+  <span class="size-badge">모바일 뷰 · 최대 340px</span>
+  <div class="widget-container mobile">
+    <div id="gamey-calendar-embed-mobile"></div>
+  </div>
+</div>
+
+<div class="footnote">
+  카드 클릭 시 전체 캘린더(<a href="https://calendar.gamey.kr" target="_blank">calendar.gamey.kr</a>)로 이동합니다.<br>
+  <div class="divider"></div>
+  Powered by GAMEY CALENDAR
+</div>
+
+<!-- 
+  embed.js는 id="gamey-calendar-embed" 하나만 찾도록 되어 있으므로,
+  PC/모바일 두 개를 보여주기 위해 스크립트를 두 번 초기화
+-->
+<script>
+  // PC 뷰
+  (function(){
+    var pcHost = document.getElementById('gamey-calendar-embed-pc');
+    pcHost.id = 'gamey-calendar-embed';
+    var s1 = document.createElement('script');
+    s1.src = './embed.js';
+    s1.onload = function() {
+      // 복구 후 모바일 초기화
+      pcHost.id = 'gamey-calendar-embed-pc';
+      setTimeout(function(){
+        var mobileHost = document.getElementById('gamey-calendar-embed-mobile');
+        mobileHost.id = 'gamey-calendar-embed';
+        // embed.js는 즉시실행함수라 재실행 불가 → 다시 로드 (캐시 활용됨)
+        var s2 = document.createElement('script');
+        s2.src = './embed.js?v=2';
+        s2.onload = function() {
+          mobileHost.id = 'gamey-calendar-embed-mobile';
+        };
+        document.body.appendChild(s2);
+      }, 100);
+    };
+    document.body.appendChild(s1);
+  })();
+</script>
+
+</body>
+</html>
