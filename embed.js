@@ -8,7 +8,7 @@
 (function () {
   'use strict';
 
-  /* ──────────── \uC124\uC815 ──────────── */
+  /* ------------ \uC124\uC815 ------------ */
   var TARGET_ID  = 'gamey-calendar-embed';
   var CAL_URL    = 'https://calendar.gamey.kr';
   var CACHE_KEY  = 'gameycal_embed_v1';
@@ -34,13 +34,13 @@
   };
   var DAYS = ['\uC77C', '\uC6D4', '\uD654', '\uC218', '\uBAA9', '\uAE08', '\uD1A0'];
 
-  /* ──────────── DOM \uC900\uBE44 ──────────── */
+  /* ------------ DOM \uC900\uBE44 ------------ */
   function ready(fn) {
     if (document.readyState !== 'loading') fn();
     else document.addEventListener('DOMContentLoaded', fn);
   }
 
-  /* ──────────── \uC720\uD2F8 ──────────── */
+  /* ------------ \uC720\uD2F8 ------------ */
   function esc(s) {
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -49,7 +49,7 @@
 
   function parseTitle(summary) {
     if (!summary) return '';
-    // \uAC8C\uC784\uBA85(\uC601\uC5B4\uBCD1\uAE30)[PC/NS] → \uD50C\uB7AB\uD3FC \uB300\uAD04\uD638\uB9CC \uC81C\uAC70
+    // \uAC8C\uC784\uBA85(\uC601\uC5B4\uBCD1\uAE30)[PC/NS] -> \uD50C\uB7AB\uD3FC \uB300\uAD04\uD638\uB9CC \uC81C\uAC70
     var s = summary.replace(/\s*\[[^\]]*\]\s*$/, '').trim();
     // \uC601\uC5B4\uBCD1\uAE30 \uAD04\uD638\uB294 \uB0A8\uACA8\uB450\uB418 \uB108\uBB34 \uAE38\uBA74 \uC81C\uAC70
     return s;
@@ -86,7 +86,7 @@
     return new Date(Date.UTC(y, m, d) - 9 * 3600000);
   }
 
-  /* ──────────── \uB370\uC774\uD130 \uB85C\uB4DC ──────────── */
+  /* ------------ \uB370\uC774\uD130 \uB85C\uB4DC ------------ */
   function loadFromCache() {
     try {
       var raw = localStorage.getItem(CACHE_KEY);
@@ -144,7 +144,7 @@
     });
   }
 
-  /* ──────────── \uB80C\uB354 ──────────── */
+  /* ------------ \uB80C\uB354 ------------ */
   var CSS = [
     ':host { all: initial; display: block; font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif; color: #1a1e2a; }',
     '* { box-sizing: border-box; }',
@@ -237,7 +237,7 @@
     );
   }
 
-  /* ──────────── \uBD80\uD305 ──────────── */
+  /* ------------ \uBD80\uD305 ------------ */
   function boot() {
     var host = document.getElementById(TARGET_ID);
     if (!host) return;
@@ -270,7 +270,7 @@
       while (bodyDiv.firstChild) container.appendChild(bodyDiv.firstChild);
     }
 
-    // \uCE90\uC2DC \uC6B0\uC120 → \uBC31\uADF8\uB77C\uC6B4\uB4DC \uB9AC\uD504\uB808\uC2DC
+    // \uCE90\uC2DC \uC6B0\uC120 -> \uBC31\uADF8\uB77C\uC6B4\uB4DC \uB9AC\uD504\uB808\uC2DC
     var cached = loadFromCache();
     if (cached) apply(cached);
 
