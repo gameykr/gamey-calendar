@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>게임와이 캘린더 위젯 - 임베드 테스트</title>
+<style>
+  body { font-family: "Noto Sans KR", -apple-system, sans-serif; background: #f5f6fa; margin: 0; padding: 40px 20px; }
+  .demo-wrap { max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 8px; color: #111; }
+  p  { color: #555; font-size: 13px; line-height: 1.6; }
+  .slot-label { display: inline-block; font-size: 11px; color: #888; background: #fff; padding: 4px 10px; border-radius: 4px; margin-bottom: 8px; border: 1px dashed #ccc; }
+  .fake-main { background: #fff; padding: 24px; border-radius: 8px; margin-top: 20px; }
+  .fake-slot { width: 100%; max-width: 520px; }
+  .code-box { background: #1e293b; color: #e2e8f0; padding: 14px 18px; border-radius: 6px; font-family: Menlo, Consolas, monospace; font-size: 12px; overflow-x: auto; margin: 10px 0; }
+  .note { background: #fffbeb; border-left: 3px solid #f59e0b; padding: 10px 14px; font-size: 12px; color: #78350f; margin: 16px 0; }
+</style>
+</head>
+<body>
+
+<div class="demo-wrap">
+  <h1>게임와이 캘린더 임베드 테스트</h1>
+  <p>ND 요청에 따라 script 방식으로 제작. iframe 없이 gamey.kr 메인에 주입됩니다.</p>
+
+  <div class="code-box">
+&lt;!-- 게임와이 캘린더 위젯 (메인에 넣을 코드) --&gt;<br>
+&lt;div id="gamey-calendar-embed"&gt;&lt;/div&gt;<br>
+&lt;script src="https://calendar.gamey.kr/embed.js" async&gt;&lt;/script&gt;
+  </div>
+
+  <div class="note">
+    이 페이지는 데모입니다. 같은 폴더에 <code>embed.js</code>가 있어야 작동합니다.<br>
+    배포 시에는 <code>embed.js</code>를 <code>calendar.gamey.kr</code> 루트에 업로드하면 됩니다.
+  </div>
+
+  <div class="fake-main">
+    <span class="slot-label">▼ gamey.kr 메인 "많이 본 뉴스" 위 슬롯</span>
+    <div class="fake-slot">
+      <!-- 실제 배포 시 넣을 코드 -->
+      <div id="gamey-calendar-embed"></div>
+      <script src="./embed.js" async></script>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
