@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GAME CALENDAR</title>
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">  ← 여기 추가
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preload" as="image" href="/logo.webp" imagesrcset="/logo.webp 1x, /logo@2x.webp 2x">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 <style>
 /* ── RESET & VARIABLES ── */
@@ -44,9 +45,16 @@ body { font-family: 'Noto Sans KR', sans-serif; background: var(--gray-50); colo
   height: 56px; padding: 0 16px; gap: 10px;
   max-width: 1280px; margin: 0 auto;
 }
-.logo { display:flex; align-items:baseline; gap:5px; text-decoration:none; flex-shrink:0; }
-.logo-gamey { font-size:12px; font-weight:900; color:var(--gray-400); letter-spacing:2.5px; }
-.logo-calendar { font-size:18px; font-weight:900; color:var(--orange); letter-spacing:-0.5px; }
+.logo { display:flex; align-items:center; gap:8px; text-decoration:none; flex-shrink:0; }
+.logo-icon { height:38px; width:auto; display:block; flex-shrink:0; }
+.logo-text { display:flex; flex-direction:column; line-height:1; gap:3px; }
+.logo-gamey { font-size:11px; font-weight:900; color:var(--orange); letter-spacing:1.2px; }
+.logo-calendar { font-size:15px; font-weight:900; color:var(--orange); letter-spacing:-0.3px; }
+@media (min-width: 768px) {
+  .logo-icon { height:42px; }
+  .logo-gamey { font-size:12px; }
+  .logo-calendar { font-size:17px; }
+}
 
 .gnb-search { flex: 1; position: relative; }
 .gnb-search input {
@@ -1178,8 +1186,11 @@ img {
 <nav class="gnb">
   <div class="gnb-inner">
     <a class="logo" href="#">
-      <span class="logo-gamey">GAME</span>
-      <span class="logo-calendar">CALENDAR</span>
+      <img class="logo-icon" src="/logo.webp" srcset="/logo.webp 1x, /logo@2x.webp 2x" alt="GAME CALENDAR" width="39" height="42" fetchpriority="high" decoding="async">
+      <span class="logo-text">
+        <span class="logo-gamey">GAME</span>
+        <span class="logo-calendar">CALENDAR</span>
+      </span>
     </a>
     <div class="gnb-search">
       <svg class="s-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
