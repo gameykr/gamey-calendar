@@ -39,6 +39,7 @@ body { font-family: 'Noto Sans KR', sans-serif; background: var(--gray-50); colo
 .gnb {
   position: sticky; top: 0; z-index: 300;
   background: white; border-bottom: 1px solid var(--gray-200);
+  overflow: visible;
 }
 .gnb-inner {
   display: flex; align-items: center;
@@ -46,14 +47,14 @@ body { font-family: 'Noto Sans KR', sans-serif; background: var(--gray-50); colo
   max-width: 1280px; margin: 0 auto;
 }
 .logo { display:flex; align-items:center; gap:10px; text-decoration:none; flex-shrink:0; }
-.logo-icon { height:56px; width:auto; display:block; flex-shrink:0; }
+.logo-icon { height:72px; width:auto; display:block; flex-shrink:0; margin: -8px 0; }
 .logo-text { display:flex; flex-direction:column; line-height:1; gap:3px; }
-.logo-gamey { font-size:14px; font-weight:900; color:var(--orange); letter-spacing:1.2px; }
-.logo-calendar { font-size:20px; font-weight:900; color:var(--orange); letter-spacing:-0.3px; }
+.logo-gamey { font-size:15px; font-weight:900; color:var(--orange); letter-spacing:1.2px; }
+.logo-calendar { font-size:22px; font-weight:900; color:var(--orange); letter-spacing:-0.3px; }
 @media (min-width: 768px) {
-  .logo-icon { height:64px; }
-  .logo-gamey { font-size:16px; }
-  .logo-calendar { font-size:23px; }
+  .logo-icon { height:90px; margin: -12px 0; }
+  .logo-gamey { font-size:18px; }
+  .logo-calendar { font-size:27px; }
 }
 
 .gnb-search { flex: 1; position: relative; }
