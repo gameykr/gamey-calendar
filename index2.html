@@ -1,0 +1,2975 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GAME CALENDAR</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preload" as="image" href="/logo.webp" imagesrcset="/logo.webp 1x, /logo@2x.webp 2x">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & VARIABLES ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --orange: #FF6F0F;
+  --orange-light: #FFF3EB;
+  --orange-mid: #FFD9BC;
+  --gray-50: #F9F9F9;
+  --gray-100: #F2F2F2;
+  --gray-200: #E4E4E4;
+  --gray-400: #ABABAB;
+  --gray-600: #6E6E6E;
+  --gray-800: #3A3A3A;
+  --gray-900: #1A1A1A;
+  --white: #FFFFFF;
+  --release: #E8414A;
+  --test: #E8873C;
+  --reserve: #C8950A;
+  --record: #2E7D6B;
+  --event: #1B6CB2;
+}
+
+html { scroll-behavior: smooth; }
+body { font-family: 'Noto Sans KR', sans-serif; background: var(--gray-50); color: var(--gray-900); min-height: 100vh; }
+
+/* ════════════════════════════════════
+   GNB
+════════════════════════════════════ */
+.gnb {
+  position: sticky; top: 0; z-index: 300;
+  background: white; border-bottom: 1px solid var(--gray-200);
+}
+.gnb-inner {
+  display: flex; align-items: center;
+  height: 64px; padding: 0 16px; gap: 10px;
+  max-width: 1280px; margin: 0 auto;
+}
+.logo { display:flex; align-items:center; gap:10px; text-decoration:none; flex-shrink:0; }
+.logo-icon { height:56px; width:auto; display:block; flex-shrink:0; }
+.logo-text { display:flex; flex-direction:column; line-height:1; gap:3px; }
+.logo-gamey { font-size:14px; font-weight:900; color:var(--orange); letter-spacing:1.2px; }
+.logo-calendar { font-size:20px; font-weight:900; color:var(--orange); letter-spacing:-0.3px; }
+@media (min-width: 768px) {
+  .logo-icon { height:64px; }
+  .logo-gamey { font-size:16px; }
+  .logo-calendar { font-size:23px; }
+}
+
+.gnb-search { flex: 1; position: relative; }
+.gnb-search input {
+  width: 100%; height: 38px;
+  border: 1.5px solid var(--gray-200); border-radius: 10px;
+  padding: 0 14px 0 38px;
+  font-family: inherit; font-size: 14px;
+  background: var(--gray-50); outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+.gnb-search input:focus { border-color: var(--orange); background: white; }
+.gnb-search .s-icon {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  width: 15px; height: 15px; color: var(--gray-400); pointer-events: none;
+}
+.gnb-actions { display: flex; align-items: center; gap: 4px; }
+.gnb-icon-btn {
+  width: 38px; height: 38px; border-radius: 10px;
+  border: none; background: transparent; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gray-600); transition: background 0.12s;
+}
+.gnb-icon-btn:hover { background: var(--gray-100); }
+.gnb-icon-btn svg { width: 20px; height: 20px; }
+.gnb-login-btn {
+  display: none; align-items: center; gap: 6px;
+  padding: 7px 14px; border: none; border-radius: 8px;
+  background: var(--orange); color: white;
+  font-family: inherit; font-size: 13px; font-weight: 700;
+  cursor: pointer; white-space: nowrap; transition: background 0.12s;
+}
+.gnb-login-btn:hover { background: #e85e00; }
+
+/* ════════════════════════════════════
+   FILTER BAR
+════════════════════════════════════ */
+.filter-sticky {
+  position: sticky; top: 64px; z-index: 200;
+  background: white; border-bottom: 1px solid var(--gray-200);
+}
+@media (min-width: 768px) { .filter-sticky { top: 72px; } }
+.filter-inner { max-width: 1280px; margin: 0 auto; }
+.filter-row { display:flex; align-items:center; gap:6px; overflow-x:auto; scrollbar-width:none; } /* legacy */
+.filter-row::-webkit-scrollbar { display: none; }
+.filter-sep { width: 1px; height: 20px; background: var(--gray-200); flex-shrink: 0; }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 12px; border-radius: 20px;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; border: 1.5px solid transparent;
+  white-space: nowrap; flex-shrink: 0; transition: opacity 0.12s;
+}
+.chip:hover { opacity: 0.75; }
+.chip-dot { width: 7px; height: 7px; border-radius: 50%; }
+.chip.all      { background: var(--orange); color: white; border-color: var(--orange); }
+.chip.release  { color: var(--release); border-color: var(--release); }
+.chip.test     { color: var(--test); border-color: var(--test); }
+.chip.reserve  { color: var(--reserve); border-color: var(--reserve); }
+.chip.record   { color: var(--record); border-color: var(--record); }
+.chip.event    { color: var(--event); border-color: var(--event); }
+.chip.inactive { opacity: 0.4; }
+
+.ptab {
+  padding: 5px 11px; border-radius: 8px;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  background: var(--gray-100); color: var(--gray-600);
+  white-space: nowrap; flex-shrink: 0; transition: all 0.12s;
+}
+.ptab.active { background: var(--gray-900); color: white; }
+
+/* ════════════════════════════════════
+   PAGE LAYOUT
+════════════════════════════════════ */
+.page {
+  max-width: 1280px; margin: 0 auto;
+  padding: 16px 16px 100px;
+}
+.content-wrap { width: 100%; }
+
+/* ════════════════════════════════════
+   Y PICK SECTION (추천 섹션)
+════════════════════════════════════ */
+.ypick-section {
+  margin-bottom: 20px;
+  display: none; /* 데이터 로드 후 표시 */
+}
+.ypick-section.visible { display: block; }
+
+.ypick-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 12px; padding: 0 2px;
+}
+.ypick-title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 15px; font-weight: 900; color: var(--gray-900);
+}
+.ypick-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: linear-gradient(135deg, #FF6F0F, #FF3D00);
+  color: white; font-size: 12px; font-weight: 900;
+  padding: 3px 10px; border-radius: 20px;
+  letter-spacing: 0.5px;
+}
+.ypick-sub { font-size: 12px; color: var(--gray-400); margin-left: auto; }
+
+.ypick-scroll {
+  display: flex; gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-behavior: smooth;
+}
+.ypick-scroll::-webkit-scrollbar { height: 4px; }
+.ypick-scroll::-webkit-scrollbar-track { background: var(--gray-100); border-radius: 2px; }
+.ypick-scroll::-webkit-scrollbar-thumb { background: var(--gray-300,#ccc); border-radius: 2px; }
+.ypick-scroll::-webkit-scrollbar-thumb:hover { background: var(--orange); }
+@media (min-width: 768px) {
+  .ypick-scroll { scrollbar-width: thin; scrollbar-color: #ccc var(--gray-100); }
+}
+
+.ypick-card {
+  flex-shrink: 0;
+  width: 200px;
+  background: white;
+  border: 1.5px solid var(--gray-200);
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+.ypick-card:hover {
+  border-color: var(--orange);
+  box-shadow: 0 6px 24px rgba(255,111,15,0.15);
+  transform: translateY(-2px);
+}
+.ypick-thumb {
+  width: 100%; height: 110px;
+  background: var(--gray-100);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 40px;
+  position: relative;
+  overflow: hidden;
+}
+.ypick-thumb img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+.ypick-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);
+}
+.ypick-y-stamp {
+  position: absolute; top: 8px; right: 8px;
+  background: linear-gradient(135deg, #FF6F0F, #FF3D00);
+  color: white; font-size: 11px; font-weight: 900;
+  width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 8px rgba(255,63,0,0.4);
+  letter-spacing: -0.5px;
+}
+.ypick-info { padding: 10px 12px 12px; }
+.ypick-cat-badge {
+  font-size: 10px; font-weight: 700;
+  padding: 2px 6px; border-radius: 4px;
+  display: inline-block; margin-bottom: 5px;
+}
+.ypick-name {
+  font-size: 13px; font-weight: 700; line-height: 1.35;
+  overflow: hidden; text-overflow: ellipsis;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  margin-bottom: 6px;
+}
+.ypick-meta { font-size: 11px; color: var(--gray-400); }
+.ypick-platforms { display: flex; gap: 3px; margin-top: 5px; }
+
+/* ════════════════════════════════════
+   EVENT BANNER
+════════════════════════════════════ */
+.event-banner {
+  background: white; border: 1px solid var(--gray-200);
+  border-radius: 14px; overflow: hidden; cursor: pointer;
+  display: flex; align-items: stretch;
+  margin-bottom: 10px; transition: all 0.15s;
+}
+.event-banner:hover { border-color: var(--event); box-shadow: 0 4px 16px rgba(27,108,178,0.1); }
+.ev-thumb {
+  width: 72px; flex-shrink: 0;
+  background: linear-gradient(135deg, #1B2838, #2a475e);
+  display: flex; align-items: center; justify-content: center; font-size: 28px;
+  position: relative; overflow: hidden;
+}
+.ev-body {
+  padding: 12px 14px; flex: 1; min-width: 0;
+  display: flex; flex-direction: column; justify-content: center; gap: 4px;
+}
+.ev-period {
+  font-size: 11px; font-weight: 700; color: var(--event);
+  background: #E6F0FA; display: inline-flex; padding: 2px 8px;
+  border-radius: 5px; width: fit-content;
+}
+.ev-title { font-size: 14px; font-weight: 700; }
+.ev-sub   { font-size: 12px; color: var(--gray-600); }
+.ev-live  {
+  margin: auto 14px auto auto; flex-shrink: 0;
+  background: var(--event); color: white;
+  font-size: 11px; font-weight: 700;
+  padding: 4px 10px; border-radius: 6px;
+}
+
+/* ════════════════════════════════════
+   DATE SECTION & GAME LIST
+════════════════════════════════════ */
+.date-section { margin-bottom: 4px; }
+.date-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 2px 8px;
+}
+.date-label { font-size: 13px; font-weight: 700; color: var(--gray-600); white-space: nowrap; }
+.date-today-tag {
+  font-size: 11px; font-weight: 700;
+  background: var(--orange); color: white;
+  padding: 2px 8px; border-radius: 6px;
+}
+.date-line { flex: 1; height: 1px; background: var(--gray-200); }
+
+.game-list { display: flex; flex-direction: column; }
+
+.game-card {
+  background: white;
+  border-top: 1px solid var(--gray-100);
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 4px; cursor: pointer; transition: background 0.1s;
+}
+.game-card:first-child { border-radius: 14px 14px 0 0; border: 1px solid var(--gray-200); }
+.game-card:last-child  { border-radius: 0 0 14px 14px; border-bottom: 1px solid var(--gray-200); margin-bottom: 12px; }
+.game-card:only-child  { border-radius: 14px; border: 1px solid var(--gray-200); margin-bottom: 12px; }
+.game-card:hover { background: var(--gray-50); }
+.game-card.featured { border-left: 3px solid var(--orange) !important; padding-left: 12px; }
+
+.card-thumb {
+  width: 80px; height: 80px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30px; background: var(--gray-100); overflow: hidden;
+  position: relative;
+}
+.card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.card-y-stamp {
+  position: absolute; top: 4px; right: 4px;
+  background: var(--orange); color: white;
+  font-size: 9px; font-weight: 900;
+  width: 18px; height: 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.card-badges { display: flex; gap: 4px; flex-wrap: wrap; }
+.badge { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
+.badge-release { background: #FDECEA; color: var(--release); }
+.badge-test    { background: #FEF3E9; color: var(--test); }
+.badge-reserve { background: #FDF8E6; color: var(--reserve); }
+.badge-record  { background: #E8F4F1; color: var(--record); }
+.badge-event   { background: #E6F0FA; color: var(--event); }
+.badge-genre   { background: var(--gray-100); color: var(--gray-600); }
+
+.card-title {
+  font-size: 14px; font-weight: 700; line-height: 1.35;
+  overflow: hidden; text-overflow: ellipsis;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+.card-meta { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--gray-400); }
+.meta-dot { width: 2px; height: 2px; border-radius: 50%; background: var(--gray-400); }
+
+.platform-icons { display: flex; gap: 3px; }
+.picon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 5px;
+  font-size: 0;
+}
+.picon-PC { background: #E8F0FE; color: #1565C0; }
+.picon-PS { background: #E8EBF8; color: #003087; }
+.picon-XB { background: #E8F5E9; color: #107C10; }
+.picon-NS { background: #FDECEA; color: #E60012; }
+.picon-MO { background: #F3E5F5; color: #7B1FA2; }
+
+/* ════════════════════════════════════
+   LOADING / EMPTY
+════════════════════════════════════ */
+.skeleton-list { display: flex; flex-direction: column; gap: 1px; }
+.skeleton-card {
+  background: white; border-radius: 14px; border: 1px solid var(--gray-200);
+  padding: 14px; display: flex; gap: 14px; margin-bottom: 4px;
+}
+.sk-thumb {
+  width: 80px; height: 80px; border-radius: 12px;
+  background: linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 50%, var(--gray-100) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  flex-shrink: 0;
+}
+.sk-body { flex: 1; display: flex; flex-direction: column; gap: 8px; justify-content: center; }
+.sk-line {
+  height: 12px; border-radius: 6px;
+  background: linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 50%, var(--gray-100) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+.sk-line.short { width: 40%; }
+.sk-line.mid   { width: 65%; }
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+.empty-msg {
+  text-align: center; padding: 60px 20px;
+  color: var(--gray-400); font-size: 14px; line-height: 2;
+}
+.empty-msg .ico { font-size: 40px; display: block; margin-bottom: 8px; }
+
+/* ════════════════════════════════════
+   SIDEBAR (PC)
+════════════════════════════════════ */
+.sidebar-right { display: none; }
+
+.widget {
+  background: white; border: 1px solid var(--gray-200);
+  border-radius: 16px; padding: 20px; margin-bottom: 16px;
+}
+.widget-title {
+  font-size: 13px; font-weight: 700; color: var(--gray-800);
+  margin-bottom: 14px; display: flex; align-items: center; gap: 6px;
+}
+.widget-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); }
+
+.mini-cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.mini-cal-month { font-size: 14px; font-weight: 700; }
+.mini-cal-navs { display: flex; gap: 4px; }
+.mini-cal-navs button {
+  width: 24px; height: 24px; border: none;
+  background: var(--gray-100); border-radius: 6px;
+  cursor: pointer; font-size: 12px; color: var(--gray-600);
+  display: flex; align-items: center; justify-content: center;
+}
+.mini-cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; text-align: center; }
+.cal-dow { font-size: 10px; font-weight: 700; color: var(--gray-400); padding: 4px 0; }
+.cal-day {
+  font-size: 12px; font-weight: 500; padding: 5px 2px;
+  border-radius: 6px; cursor: pointer; color: var(--gray-800); line-height: 1;
+}
+.cal-day:hover { background: var(--gray-100); }
+.cal-day.today { background: var(--orange); color: white; font-weight: 700; }
+.cal-day.has-event { position: relative; }
+.cal-day.has-event::after {
+  content:''; display: block; width: 3px; height: 3px;
+  background: var(--orange); border-radius: 50%; margin: 1px auto 0;
+}
+.cal-day.today::after { background: white; }
+.cal-day.empty { color: transparent; pointer-events: none; }
+.cal-day.sun { color: #E8414A; }
+.cal-day.sat { color: var(--event); }
+.cal-day.today.sun, .cal-day.today.sat { color: white; }
+
+.snav-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 10px; border-radius: 10px; cursor: pointer;
+  font-size: 14px; font-weight: 500; color: var(--gray-800);
+  transition: background 0.12s; margin-bottom: 2px;
+}
+.snav-item:hover { background: var(--gray-100); }
+.snav-item.active { background: var(--orange-light); color: var(--orange); font-weight: 700; }
+.snav-left { display: flex; align-items: center; gap: 9px; }
+.cat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.cnt-badge { font-size: 11px; font-weight: 700; background: var(--gray-100); color: var(--gray-600); padding: 2px 7px; border-radius: 10px; }
+.snav-item.active .cnt-badge { background: var(--orange-mid); color: var(--orange); }
+
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.stat-item { background: var(--gray-50); border-radius: 10px; padding: 12px; text-align: center; }
+.stat-num   { font-size: 22px; font-weight: 900; color: var(--orange); }
+.stat-label { font-size: 11px; color: var(--gray-600); margin-top: 2px; }
+
+.upcoming-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--gray-100); cursor: pointer;
+}
+.upcoming-item:last-child { border-bottom: none; }
+.upcoming-item:hover .up-title { color: var(--orange); }
+.up-date-box {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: var(--gray-100);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.up-date-box.today { background: var(--orange); }
+.up-month { font-size: 9px; font-weight: 700; color: var(--gray-400); line-height: 1; }
+.up-date-box.today .up-month { color: rgba(255,255,255,0.7); }
+.up-day { font-size: 16px; font-weight: 900; color: var(--gray-800); line-height: 1.1; }
+.up-date-box.today .up-day { color: white; }
+.up-info { flex: 1; min-width: 0; }
+.up-title { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color 0.12s; }
+.up-meta  { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+
+/* ════════════════════════════════════
+   BOTTOM NAV
+════════════════════════════════════ */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 300;
+  background: white; border-top: 1px solid var(--gray-200);
+  display: flex; padding: 8px 0 max(16px, env(safe-area-inset-bottom));
+}
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 4px 0; }
+.nav-item svg { width: 22px; height: 22px; color: var(--gray-400); }
+.nav-item.active svg { color: var(--orange); }
+.nav-label { font-size: 10px; font-weight: 600; color: var(--gray-400); }
+.nav-item.active .nav-label { color: var(--orange); }
+
+/* ════════════════════════════════════
+   RESPONSIVE — TABLET 768+
+════════════════════════════════════ */
+@media (min-width: 768px) {
+  .gnb-inner { height: 72px; padding: 0 24px; gap: 16px; }
+  .filter-sticky { top: 72px; }
+  .filter-row { padding: 10px 24px; gap: 8px; }
+  .gnb-login-btn { display: flex; }
+  .gnb-search { max-width: 380px; }
+  .bottom-nav { display: none; }
+  .page { padding: 20px 24px 40px; }
+
+  .game-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .game-card {
+    border-radius: 14px !important; border: 1px solid var(--gray-200) !important;
+    padding: 14px !important; margin-bottom: 0 !important; transition: all 0.15s;
+  }
+  .game-card:hover {
+    border-color: var(--orange) !important;
+    box-shadow: 0 4px 16px rgba(255,111,15,0.1);
+    transform: translateY(-1px);
+  }
+  .game-card.featured { border-left: 3px solid var(--orange) !important; }
+
+  .ypick-card { width: 180px; }
+  .ev-thumb { width: 100px; font-size: 36px; }
+}
+
+/* ════════════════════════════════════
+   RESPONSIVE — PC 1080+
+════════════════════════════════════ */
+@media (min-width: 1080px) {
+  .gnb-inner { padding: 0 32px; }
+  .filter-row { padding: 10px 32px; }
+
+  .page {
+    padding: 28px 32px 48px;
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 24px; align-items: start;
+  }
+
+  
+  
+  
+
+  .sidebar-right {
+    display: block;
+    position: sticky; top: calc(72px + 53px + 16px);
+  }
+
+  .content-wrap { min-width: 0; }
+  .game-list { grid-template-columns: 1fr 1fr; }
+}
+
+/* ════════════════════════════════════
+   DETAIL SLIDE PANEL
+════════════════════════════════════ */
+.panel-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.45);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s;
+}
+.panel-overlay.open { opacity: 1; pointer-events: all; }
+
+.detail-panel {
+  position: fixed; right: 0; top: 0; bottom: 0; z-index: 501;
+  width: 100%; max-width: 540px;
+  background: white;
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+}
+.detail-panel.open { transform: translateX(0); }
+
+@media (min-width: 768px) {
+  .detail-panel { max-width: 540px; border-left: 1px solid var(--gray-200); }
+}
+
+.panel-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--gray-100);
+  flex-shrink: 0; background: white;
+}
+.panel-close {
+  width: 36px; height: 36px; border-radius: 10px;
+  border: none; background: var(--gray-100); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gray-600); flex-shrink: 0; transition: background 0.12s;
+}
+.panel-close:hover { background: var(--gray-200); }
+.panel-close svg { width: 18px; height: 18px; }
+.panel-header-label { font-size: 13px; font-weight: 700; color: var(--gray-400); }
+
+.panel-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+.panel-hero {
+  width: 100%; height: 210px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 72px; position: relative; flex-shrink: 0;
+}
+.panel-hero img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+}
+.panel-hero-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 55%);
+}
+.panel-hero-bottom {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 16px;
+}
+.panel-hero-badges { display: flex; gap: 5px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
+.panel-hero-title {
+  font-size: 18px; font-weight: 900; color: white; line-height: 1.3;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+}
+.panel-y-badge { white-space: nowrap;
+  background: linear-gradient(135deg,#FF6F0F,#FF3D00);
+  color: white; font-size: 11px; font-weight: 900;
+  padding: 3px 9px; border-radius: 20px;
+}
+
+.panel-content { padding: 18px 16px 48px; }
+
+.panel-info-list { margin-bottom: 20px; }
+.panel-info-row {
+  display: flex; align-items: flex-start;
+  padding: 11px 0; border-bottom: 1px solid var(--gray-100);
+}
+.panel-info-row:last-child { border-bottom: none; }
+.panel-info-label {
+  width: 70px; flex-shrink: 0;
+  font-size: 12px; font-weight: 700; color: var(--gray-400); padding-top: 2px;
+}
+.panel-info-value {
+  flex: 1; font-size: 14px; font-weight: 500; color: var(--gray-800); line-height: 1.5;
+}
+.panel-plats { display: flex; gap: 5px; flex-wrap: wrap; }
+.panel-plats .picon { width: 24px; height: 24px; font-size: 10px; border-radius: 5px; }
+
+.panel-desc {
+  font-size: 14px; line-height: 1.75; color: #1a4a6e;
+  background: #E8F4FD; border-radius: 12px;
+  padding: 16px; margin-bottom: 16px;
+  white-space: pre-line; word-break: break-all;
+  border-left: 3px solid #5BB8F5;
+}
+
+.panel-gcal-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 14px;
+  background: white; border: 1.5px solid var(--gray-200); border-radius: 12px;
+  font-family: inherit; font-size: 14px; font-weight: 700;
+  color: var(--gray-800); cursor: pointer; transition: all 0.15s;
+  text-decoration: none; margin-bottom: 10px;
+}
+.panel-gcal-btn:hover { border-color: var(--orange); color: var(--orange); }
+.panel-gcal-btn svg { width: 18px; height: 18px; }
+
+/* ── USER MENU ── */
+.user-menu { position: relative; }
+.user-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  cursor: pointer; border: 2px solid var(--orange);
+  object-fit: cover; display: block;
+}
+.user-dropdown {
+  display: none; position: absolute; right: 0; top: 44px;
+  background: white; border: 1px solid var(--gray-200);
+  border-radius: 14px; padding: 14px; min-width: 200px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12); z-index: 400;
+}
+.user-menu:hover .user-dropdown,
+.user-menu.open .user-dropdown { display: block; }
+.user-name-wrap { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--gray-100); }
+.display-name-input {
+  width: 100%; padding: 7px 10px; border: 1.5px solid var(--gray-200);
+  border-radius: 8px; font-family: inherit; font-size: 13px; outline: none;
+  margin-bottom: 6px;
+}
+.display-name-input:focus { border-color: var(--orange); }
+.dn-save-btn {
+  width: 100%; padding: 7px; background: var(--orange); color: white;
+  border: none; border-radius: 8px; font-family: inherit; font-size: 13px;
+  font-weight: 700; cursor: pointer;
+}
+.user-menu-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 10px; border-radius: 8px; cursor: pointer;
+  font-size: 13px; color: var(--gray-800); transition: background 0.12s;
+}
+.user-menu-item:hover { background: var(--gray-100); }
+
+/* ── 일정 추가 모달 ── */
+.add-modal-overlay {
+  position: fixed; inset: 0; z-index: 600;
+  background: rgba(0,0,0,0.5);
+  display: none; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.add-modal-overlay.open { display: flex; }
+.add-modal {
+  background: white; border-radius: 20px;
+  width: 100%; max-width: 480px;
+  max-height: 90vh; overflow-y: auto;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+.add-modal h2 {
+  font-size: 18px; font-weight: 900; margin-bottom: 20px;
+  display: flex; align-items: center; gap: 10px;
+}
+.form-group { margin-bottom: 14px; }
+.form-label {
+  display: block; font-size: 12px; font-weight: 700;
+  color: var(--gray-600); margin-bottom: 5px;
+}
+.form-input, .form-select, .form-textarea {
+  width: 100%; padding: 10px 12px;
+  border: 1.5px solid var(--gray-200); border-radius: 10px;
+  font-family: inherit; font-size: 14px; outline: none;
+  transition: border-color 0.15s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--orange);
+}
+.form-textarea { min-height: 80px; resize: vertical; line-height: 1.6; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-plat-group { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.plat-check {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 8px;
+  background: var(--gray-100); cursor: pointer;
+  font-size: 12px; font-weight: 600; color: var(--gray-600);
+  transition: all 0.12s; user-select: none;
+}
+.plat-check.selected { background: var(--gray-900); color: white; }
+.form-btn-row { display: flex; gap: 8px; margin-top: 20px; }
+.form-submit-btn {
+  flex: 1; padding: 13px; background: var(--orange); color: white;
+  border: none; border-radius: 12px; font-family: inherit;
+  font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.12s;
+}
+.form-submit-btn:hover { background: #e85e00; }
+.form-cancel-btn {
+  padding: 13px 20px; background: var(--gray-100); color: var(--gray-600);
+  border: none; border-radius: 12px; font-family: inherit;
+  font-size: 15px; font-weight: 600; cursor: pointer;
+}
+
+/* ── 일정 추가 플로팅 버튼 ── */
+.fab {
+  position: fixed; right: 20px; bottom: 90px; z-index: 250;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--orange); color: white;
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(255,111,15,0.4);
+  font-size: 24px; transition: all 0.15s;
+}
+.fab:hover { transform: scale(1.08); box-shadow: 0 6px 24px rgba(255,111,15,0.5); }
+@media (min-width: 768px) {
+  .fab { bottom: 24px; }
+}
+
+/* ── YouTube 임베드 ── */
+.youtube-embed {
+  position: relative; padding-bottom: 56.25%; height: 0;
+  border-radius: 12px; overflow: hidden; margin-bottom: 16px;
+  background: #000;
+}
+.youtube-embed iframe {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  border: none;
+}
+.youtube-thumb {
+  position: relative; border-radius: 12px; overflow: hidden;
+  margin-bottom: 16px; cursor: pointer; background: #000;
+  aspect-ratio: 16/9;
+}
+.youtube-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.youtube-play {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.3); transition: background 0.2s;
+}
+.youtube-thumb:hover .youtube-play { background: rgba(0,0,0,0.15); }
+.youtube-play-btn {
+  width: 60px; height: 60px; background: #FF0000; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  transform: scale(1); transition: transform 0.2s;
+}
+.youtube-thumb:hover .youtube-play-btn { transform: scale(1.1); }
+
+/* 언어 선택기 */
+.lang-switcher { display: flex; gap: 2px; flex-shrink: 0; }
+.lang-btn {
+  padding: 4px 8px; border-radius: 6px;
+  border: 1.5px solid var(--gray-200);
+  background: white; color: var(--gray-600);
+  font-family: inherit; font-size: 11px; font-weight: 700;
+  cursor: pointer; transition: all 0.12s; letter-spacing: 0.3px;
+}
+.lang-btn:hover { border-color: var(--orange); color: var(--orange); }
+.lang-btn.active { background: var(--gray-900); color: white; border-color: var(--gray-900); }
+
+/* ── 언어 선택기 */
+.lang-switcher{display:flex;gap:2px;flex-shrink:0}
+.lang-btn{padding:4px 8px;border-radius:6px;border:1.5px solid var(--gray-200);background:white;color:var(--gray-600);font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;transition:all .12s;letter-spacing:.3px;text-decoration:none;display:inline-flex;align-items:center}
+.lang-btn:hover{border-color:var(--orange);color:var(--orange)}
+.lang-btn.active{background:var(--gray-900);color:white;border-color:var(--gray-900)}
+/* ── 유저 메뉴 */
+.user-menu{position:relative}
+.user-avatar{width:34px;height:34px;border-radius:50%;cursor:pointer;border:2px solid var(--orange);object-fit:cover;display:block}
+.user-dropdown{display:none;position:absolute;right:0;top:44px;background:white;border:1px solid var(--gray-200);border-radius:14px;padding:14px;min-width:200px;box-shadow:0 8px 32px rgba(0,0,0,.12);z-index:400}
+.user-menu.open .user-dropdown{display:block}
+.user-name-wrap{margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--gray-100)}
+.display-name-input{width:100%;padding:7px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-family:inherit;font-size:13px;outline:none;margin-bottom:6px}
+.display-name-input:focus{border-color:var(--orange)}
+.dn-save-btn{width:100%;padding:7px;background:var(--orange);color:white;border:none;border-radius:8px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.user-menu-item{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--gray-800);transition:background .12s}
+.user-menu-item:hover{background:var(--gray-100)}
+/* ── 일정추가 모달 */
+.add-modal-overlay{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:20px}
+.add-modal-overlay.open{display:flex}
+.add-modal{background:white;border-radius:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.add-modal h2{font-size:18px;font-weight:900;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:12px;font-weight:700;color:var(--gray-600);margin-bottom:5px}
+.form-input,.form-select,.form-textarea{width:100%;padding:10px 12px;border:1.5px solid var(--gray-200);border-radius:10px;font-family:inherit;font-size:14px;outline:none;transition:border-color .15s}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--orange)}
+.form-textarea{min-height:80px;resize:vertical;line-height:1.6}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-plat-group{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.plat-check{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:8px;background:var(--gray-100);cursor:pointer;font-size:12px;font-weight:600;color:var(--gray-600);transition:all .12s;user-select:none}
+.plat-check.selected{background:var(--gray-900);color:white}
+.form-btn-row{display:flex;gap:8px;margin-top:20px}
+.form-submit-btn{flex:1;padding:13px;background:var(--orange);color:white;border:none;border-radius:12px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;transition:background .12s}
+.form-submit-btn:hover{background:#e85e00}
+.form-cancel-btn{padding:13px 20px;background:var(--gray-100);color:var(--gray-600);border:none;border-radius:12px;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer}
+/* ── FAB */
+.fab{position:fixed;right:20px;bottom:90px;z-index:250;width:52px;height:52px;border-radius:50%;background:var(--orange);color:white;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(255,111,15,.4);transition:all .15s}
+.fab:hover{transform:scale(1.08)}
+@media(min-width:768px){.fab{bottom:24px}}
+/* ── 패널 설명 하늘색 */
+.panel-desc{font-size:14px;line-height:1.75;color:#1a4a6e;background:#E8F4FD;border-radius:12px;padding:16px;margin-bottom:16px;white-space:pre-line;word-break:break-all;border-left:3px solid #5BB8F5}
+/* ── YouTube */
+.youtube-embed{position:relative;padding-bottom:56.25%;height:0;border-radius:12px;overflow:hidden;margin-bottom:16px;background:#000}
+.youtube-embed iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none}
+.youtube-thumb{position:relative;border-radius:12px;overflow:hidden;margin-bottom:16px;cursor:pointer;background:#000;aspect-ratio:16/9}
+.youtube-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.youtube-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.3);transition:background .2s}
+.youtube-thumb:hover .youtube-play{background:rgba(0,0,0,.15)}
+.youtube-play-btn{width:60px;height:60px;background:#FF0000;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.4);transform:scale(1);transition:transform .2s}
+.youtube-thumb:hover .youtube-play-btn{transform:scale(1.1)}
+
+/* ── 패널 메타 섹션 */
+.panel-meta-section { padding: 14px 16px; border-bottom: 1px solid var(--gray-100); }
+.panel-meta-row { display: flex; align-items: flex-start; gap: 0; padding: 8px 0; border-bottom: 1px solid var(--gray-50); }
+.panel-meta-row:last-child { border-bottom: none; }
+.panel-meta-label { width: 70px; flex-shrink: 0; font-size: 12px; font-weight: 700; color: var(--gray-400); padding-top: 2px; }
+.panel-meta-value { flex: 1; font-size: 14px; font-weight: 500; color: var(--gray-800); }
+/* ── 스토어 링크 버튼 */
+.store-links { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 16px 10px; }
+.store-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: 10px; border: 1.5px solid var(--gray-200);
+  font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+  text-decoration: none; color: var(--gray-800); background: white;
+  transition: all 0.15s;
+}
+.store-btn:hover { border-color: var(--orange); color: var(--orange); }
+.store-btn.steam { border-color: #1b2838; color: #1b2838; }
+.store-btn.steam:hover { background: #1b2838; color: white; }
+.store-btn.ps    { border-color: #003087; color: #003087; }
+.store-btn.ps:hover { background: #003087; color: white; }
+.store-btn.xbox  { border-color: #107c10; color: #107c10; }
+.store-btn.xbox:hover { background: #107c10; color: white; }
+.store-btn.nintendo { border-color: #e60012; color: #e60012; }
+.store-btn.nintendo:hover { background: #e60012; color: white; }
+.store-btn.official { border-color: var(--gray-600); color: var(--gray-600); }
+/* ── 패널 하단 버튼 */
+.panel-add-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: calc(100% - 32px); margin: 0 16px 16px;
+  padding: 14px; background: var(--orange); color: white;
+  border: none; border-radius: 12px; font-family: inherit;
+  font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.15s;
+}
+.panel-add-btn:hover { background: #e85e00; }
+/* ── 캘린더 구독 버튼 */
+.cal-sub-section { padding: 16px; border-top: 1px solid var(--gray-100); }
+.cal-sub-title { font-size: 12px; font-weight: 700; color: var(--gray-400); margin-bottom: 10px; }
+.cal-sub-btns { display: flex; flex-direction: column; gap: 6px; }
+.cal-sub-btn {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-radius: 10px;
+  border: 1.5px solid var(--gray-200); background: white;
+  font-family: inherit; font-size: 13px; font-weight: 600;
+  cursor: pointer; text-decoration: none; color: var(--gray-800);
+  transition: all 0.12s;
+}
+.cal-sub-btn:hover { border-color: var(--orange); color: var(--orange); }
+.cal-sub-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── 등급(Tier) */
+.tier-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 6px;
+  font-size: 12px; font-weight: 900; letter-spacing: -0.5px;
+  flex-shrink: 0;
+}
+.tier-S { background: linear-gradient(135deg,#FFD700,#FFA500); color: white; box-shadow: 0 2px 8px rgba(255,165,0,.4); }
+.tier-A { background: linear-gradient(135deg,#FF6B6B,#ee5a24); color: white; box-shadow: 0 2px 8px rgba(238,90,36,.3); }
+.tier-B { background: linear-gradient(135deg,#6c5ce7,#a29bfe); color: white; }
+.tier-C { background: linear-gradient(135deg,#00b894,#55efc4); color: white; }
+.tier-D { background: var(--gray-200); color: var(--gray-600); }
+.panel-tier-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: 8px;
+  font-size: 12px; font-weight: 900;
+  white-space: nowrap;
+}
+
+/* ── 댓글 섹션 */
+.comment-section { padding: 16px; border-top: 1px solid var(--gray-100); }
+.comment-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; display:flex; align-items:center; gap:8px; }
+.comment-count { background:var(--orange); color:white; font-size:11px; font-weight:700; padding:2px 7px; border-radius:10px; }
+.comment-login-area { margin-bottom:12px; }
+.comment-login-btn {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  width:100%; padding:11px; border:1.5px solid var(--gray-200); border-radius:10px;
+  background:white; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer;
+  transition: all .12s;
+}
+.comment-login-btn:hover { border-color:var(--orange); color:var(--orange); }
+.comment-input-area { display:none; margin-bottom:12px; }
+.comment-nickname { padding:8px 12px; border:1.5px solid var(--gray-200); border-radius:8px; font-family:inherit; font-size:13px; outline:none; width:100%; margin-bottom:6px; }
+.comment-nickname:focus { border-color:var(--orange); }
+.comment-textarea { width:100%; min-height:70px; padding:10px 12px; border:1.5px solid var(--gray-200); border-radius:10px; font-family:inherit; font-size:14px; outline:none; resize:vertical; line-height:1.5; }
+.comment-textarea:focus { border-color:var(--orange); }
+.comment-submit { padding:8px 18px; background:var(--orange); color:white; border:none; border-radius:8px; font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; margin-top:6px; float:right; }
+.comment-list { display:flex; flex-direction:column; gap:10px; }
+.comment-item { padding:12px; background:var(--gray-50); border-radius:10px; }
+.comment-item-header { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
+.comment-avatar { width:28px; height:28px; border-radius:50%; background:var(--orange); color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+.comment-author { font-size:13px; font-weight:700; }
+.comment-date { font-size:11px; color:var(--gray-400); margin-left:auto; }
+.comment-text { font-size:13px; line-height:1.6; color:var(--gray-800); }
+.comment-empty { font-size:13px; color:var(--gray-400); text-align:center; padding:16px 0; }
+
+/* ── 반응형 필터 */
+.filter-wrap {
+  display: flex;
+  flex-direction: column; /* 모바일: 세로 */
+  width: 100%;
+}
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--gray-100);
+}
+.filter-group:last-child { border-bottom: none; }
+.filter-group::-webkit-scrollbar { display: none; }
+.filter-vsep { display: none; } /* 모바일에선 숨김 */
+
+@media (min-width: 768px) {
+  .filter-wrap {
+    flex-direction: row; /* 태블릿/PC: 가로 한 줄 */
+    align-items: center;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0;
+  }
+  .filter-wrap::-webkit-scrollbar { display: none; }
+  .filter-group {
+    border-bottom: none;
+    padding: 9px 8px;
+    flex-shrink: 0;
+  }
+  .filter-group:first-child { padding-left: 16px; }
+  .filter-group:last-child  { padding-right: 16px; }
+  .filter-vsep {
+    display: block;
+    width: 1px; height: 20px;
+    background: var(--gray-200);
+    flex-shrink: 0;
+  }
+}
+@media (min-width: 1080px) {
+  .filter-group:first-child { padding-left: 32px; }
+  .filter-group:last-child  { padding-right: 32px; }
+}
+
+/* ── 검색 오버레이 */
+.search-overlay {
+  position: fixed; inset: 0; z-index: 600;
+  background: rgba(0,0,0,.45);
+  display: none; align-items: flex-start; justify-content: flex-end;
+}
+.search-overlay.open { display: flex; }
+
+.search-panel {
+  width: 100%; max-width: 560px; height: 100%;
+  background: white;
+  display: flex; flex-direction: column;
+  transform: translateX(100%);
+  transition: transform .3s cubic-bezier(.32,.72,0,1);
+}
+.search-overlay.open .search-panel { transform: translateX(0); }
+
+.search-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--gray-200);
+  flex-shrink: 0;
+}
+.search-input-wrap {
+  flex: 1; display: flex; align-items: center;
+  background: var(--gray-100); border-radius: 10px;
+  padding: 0 12px; gap: 8px;
+}
+.search-input-wrap svg { width: 16px; height: 16px; color: var(--gray-400); flex-shrink: 0; }
+.search-real-input {
+  flex: 1; border: none; background: transparent;
+  font-family: inherit; font-size: 15px; outline: none;
+  padding: 10px 0; color: var(--gray-900);
+}
+.search-real-input::placeholder { color: var(--gray-400); }
+.search-close-btn {
+  padding: 7px 14px; border: none; border-radius: 8px;
+  background: var(--gray-100); font-family: inherit;
+  font-size: 14px; font-weight: 600; color: var(--gray-600);
+  cursor: pointer; flex-shrink: 0; white-space: nowrap;
+  transition: background .12s;
+}
+.search-close-btn:hover { background: var(--gray-200); }
+
+.search-body {
+  flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+}
+.search-result-header {
+  padding: 12px 16px 8px;
+  font-size: 13px; color: var(--gray-600);
+}
+.search-result-header strong { color: var(--orange); }
+
+.search-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--gray-100);
+  cursor: pointer; transition: background .1s;
+}
+.search-item:hover { background: var(--gray-50); }
+.search-item:last-child { border-bottom: none; }
+
+.search-item-date {
+  min-width: 52px; text-align: center; flex-shrink: 0;
+}
+.search-item-date .s-date-day { font-size: 13px; font-weight: 700; color: var(--gray-800); }
+.search-item-date .s-date-dow { font-size: 11px; color: var(--gray-400); }
+
+.search-item-body { flex: 1; min-width: 0; }
+.search-item-badges { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 5px; }
+.search-item-title {
+  font-size: 14px; font-weight: 700; line-height: 1.35;
+  overflow: hidden; text-overflow: ellipsis;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  margin-bottom: 4px;
+}
+.search-item-title mark {
+  background: #FFF176; color: var(--gray-900);
+  border-radius: 2px; padding: 0 1px;
+}
+.search-item-meta {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; color: var(--gray-400);
+}
+.search-empty {
+  text-align: center; padding: 60px 20px;
+  color: var(--gray-400); font-size: 14px; line-height: 2;
+}
+.search-empty .ico { font-size: 40px; display: block; margin-bottom: 8px; }
+
+/* ── 이미지 성능 최적화 */
+img {
+  content-visibility: auto;
+}
+.card-thumb img, .ypick-thumb img, .ev-thumb img {
+  will-change: opacity;
+  transition: opacity .2s ease;
+}
+
+
+
+/* ── PC 필터바: 한 줄에 전부 표시 (스크롤 없음) */
+@media (min-width: 1080px) {
+  .filter-wrap {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    padding: 6px 32px;
+  }
+  .filter-group {
+    border-bottom: none !important;
+    padding: 0;
+    overflow-x: visible;
+    flex-wrap: nowrap;
+  }
+  .filter-group .chip,
+  .filter-group .ptab { flex-shrink: 0; }
+  .filter-vsep { display: block !important; }
+  .filter-sticky { border-bottom: 1px solid var(--gray-200); }
+}
+
+/* ── 패널 리디자인 */
+.detail-panel {
+  max-width: 560px !important;
+}
+.panel-hero {
+  height: 240px !important;
+}
+.panel-hero-title {
+  font-size: 20px !important;
+  font-weight: 900 !important;
+}
+.panel-content {
+  padding: 0 0 80px !important;
+}
+.panel-info-list {
+  margin: 0 !important;
+  border-bottom: 1px solid var(--gray-100);
+}
+.panel-info-row {
+  padding: 10px 16px !important;
+  display: flex;
+  align-items: flex-start;
+}
+.panel-info-label {
+  width: 76px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: var(--gray-400) !important;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+.panel-info-value {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: var(--gray-800) !important;
+  flex: 1;
+  min-width: 0;
+}
+.panel-meta-section {
+  padding: 0 !important;
+  border-bottom: 1px solid var(--gray-100);
+}
+.panel-meta-row {
+  padding: 10px 16px !important;
+}
+.panel-meta-label {
+  width: 76px !important;
+}
+.store-links {
+  padding: 12px 16px !important;
+  border-bottom: 1px solid var(--gray-100);
+  gap: 6px !important;
+}
+.store-links:empty { display: none; }
+.store-btn {
+  padding: 7px 12px !important;
+  font-size: 12px !important;
+}
+.panel-desc {
+  margin: 12px 16px !important;
+  font-size: 14px !important;
+}
+.youtube-thumb {
+  margin: 0 16px 12px !important;
+  border-radius: 10px !important;
+}
+.panel-add-btn {
+  margin: 0 16px 0 !important;
+  border-radius: 10px !important;
+}
+.comment-section {
+  padding: 16px !important;
+}
+
+/* 패널 상단 공유 버튼 */
+.panel-share-btn {
+  position: absolute;
+  top: 12px; right: 12px;
+  width: 36px; height: 36px;
+  background: rgba(255,255,255,.9);
+  border: none; border-radius: 50%;
+  cursor: pointer; z-index: 10;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+  transition: transform .15s;
+}
+.panel-share-btn:hover { transform: scale(1.1); }
+.panel-share-btn svg { width: 16px; height: 16px; color: var(--gray-800); }
+</style>
+</head>
+<body>
+
+<!-- ════ GNB ════ -->
+<nav class="gnb">
+  <div class="gnb-inner">
+    <a class="logo" href="#">
+      <img class="logo-icon" src="/logo.webp" srcset="/logo.webp 1x, /logo@2x.webp 2x" alt="GAME CALENDAR" width="39" height="42" fetchpriority="high" decoding="async">
+      <span class="logo-text">
+        <span class="logo-gamey">GAME</span>
+        <span class="logo-calendar">CALENDAR</span>
+      </span>
+    </a>
+    <div class="gnb-search">
+      <svg class="s-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="searchInput" placeholder="게임 이름으로 검색..." readonly onclick="openSearch()" style="cursor:pointer">
+    </div>
+    <div class="lang-switcher">
+      <a class="lang-btn active" href="index-kr.html">KO</a>
+      <a class="lang-btn" href="index-en.html">EN</a>
+      <a class="lang-btn" href="index-cn.html">ZH</a>
+      <a class="lang-btn" href="index-jp.html">JA</a>
+    </div>
+    <div class="gnb-actions">
+      <!-- 로그인 상태에 따라 토글 -->
+      <button class="gnb-login-btn" id="gnbLoginBtn" onclick="handleLogin()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span id="gnbLoginLabel">로그인</span>
+      </button>
+      <div class="user-menu" id="userMenu" style="display:none">
+        <img id="userAvatar" class="user-avatar" src="" alt="">
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-name-wrap">
+            <span style="font-size:12px;color:var(--gray-400);display:block;margin-bottom:4px">표시 이름</span>
+            <input id="displayNameInput" class="display-name-input" type="text" placeholder="이름 입력">
+            <button onclick="saveDisplayName()" class="dn-save-btn">저장</button>
+          </div>
+          <div class="user-menu-item" onclick="handleLogout()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            로그아웃
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ════ FILTER BAR ════ -->
+<div class="filter-sticky">
+  <div class="filter-inner">
+    <div class="filter-wrap">
+      <!-- 카테고리 그룹 -->
+      <div class="filter-group" id="filterRow">
+        <div class="chip all"     data-cat="all">전체</div>
+        <div class="chip release" data-cat="게임 출시"><span class="chip-dot" style="background:var(--release)"></span>출시</div>
+        <div class="chip test"    data-cat="게임 테스트"><span class="chip-dot" style="background:var(--test)"></span>테스트</div>
+        <div class="chip reserve" data-cat="게임 예약"><span class="chip-dot" style="background:var(--reserve)"></span>예약</div>
+        <div class="chip record"  data-cat="게임 기록"><span class="chip-dot" style="background:var(--record)"></span>기록</div>
+        <div class="chip event"   data-cat="게임 행사"><span class="chip-dot" style="background:var(--event)"></span>행사</div>
+      </div>
+      <!-- PC에서만 보이는 구분선 -->
+      <div class="filter-vsep"></div>
+      <!-- 기종 그룹 -->
+      <div class="filter-group" id="filterRowPlat">
+        <div class="ptab active" data-plat="전체">전체</div>
+        <div class="ptab" data-plat="PC" id="ptab-PC">PC</div>
+        <div class="ptab" data-plat="PS" id="ptab-PS">PS</div>
+        <div class="ptab" data-plat="XB" id="ptab-XB">XB</div>
+        <div class="ptab" data-plat="NS" id="ptab-NS">NS</div>
+        <div class="ptab" data-plat="MO" id="ptab-MO">MO</div>
+        <div class="ptab" data-plat="etc" id="ptab-etc">etc</div>
+      </div>
+      <div class="filter-vsep"></div>
+      <!-- 등급 그룹 -->
+      <div class="filter-group" id="filterRowTier">
+        <div class="ptab active" data-tier="all" id="tierAll" onclick="filterTier(this,'all')">전체</div>
+        <div class="ptab tier-tab" data-tier="S" onclick="filterTier(this,'S')" style="font-weight:900;color:#B8860B;border-color:#FFD700">🔥S</div>
+        <div class="ptab tier-tab" data-tier="A" onclick="filterTier(this,'A')" style="font-weight:900;color:#c0392b;border-color:#FF6B6B">A</div>
+        <div class="ptab tier-tab" data-tier="B" onclick="filterTier(this,'B')" style="font-weight:900;color:#6c5ce7;border-color:#a29bfe">B</div>
+        <div class="ptab tier-tab" data-tier="C" onclick="filterTier(this,'C')" style="font-weight:900;color:#00897b;border-color:#55efc4">C</div>
+        <div class="ptab tier-tab" data-tier="D" onclick="filterTier(this,'D')" style="font-weight:900;color:#888">D</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ PAGE ════ -->
+<div class="page">
+
+    <!-- MAIN CONTENT -->
+  <div class="content-wrap">
+
+    <!-- Y PICK -->
+    <div class="ypick-section" id="ypickSection">
+      <div class="ypick-header" style="position:relative">
+        <div class="ypick-title">
+          <span class="ypick-badge">★ GAMEY PICK</span>
+          이달의 주목작
+        </div>
+        <span class="ypick-sub" id="ypickCount"></span>
+        <div style="display:flex;gap:4px;margin-left:8px">
+          <button onclick="document.getElementById('ypickScroll').scrollBy({left:-220,behavior:'smooth'})"
+            style="width:28px;height:28px;border-radius:50%;border:1.5px solid var(--gray-200);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--gray-600)">‹</button>
+          <button onclick="document.getElementById('ypickScroll').scrollBy({left:220,behavior:'smooth'})"
+            style="width:28px;height:28px;border-radius:50%;border:1.5px solid var(--gray-200);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--gray-600)">›</button>
+        </div>
+      </div>
+      <div class="ypick-scroll" id="ypickScroll"></div>
+    </div>
+
+    <!-- 일반 목록 -->
+    <div id="mainContent"></div>
+
+  </div><!-- /content-wrap -->
+
+  <!-- RIGHT SIDEBAR -->
+  <aside class="sidebar-right">
+    <div class="widget">
+      <div class="widget-title"><div class="widget-dot"></div><span id="sideStatTitle">이달 현황</span></div>
+      <div class="stat-grid" id="sideStats"></div>
+    </div>
+    <div class="widget">
+      <div class="widget-title"><div class="widget-dot"></div>다가오는 일정</div>
+      <div id="sideUpcoming"></div>
+    </div>
+  </aside>
+
+</div><!-- /page -->
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="nav-item active">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    <span class="nav-label">홈</span>
+  </div>
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span class="nav-label">달력</span>
+  </div>
+  <div class="nav-item" onclick="openSearch()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <span class="nav-label">검색</span>
+  </div>
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span class="nav-label">내 정보</span>
+  </div>
+</nav>
+
+<script>
+
+/* ════ 플랫폼 아이콘 ════ */
+const PLAT_SVG = {
+  PC:  `<img src="data:image/png;base64,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"  style="width:16px;height:16px;display:inline-block;vertical-align:middle;border-radius:2px" alt="PC">`,
+  PS:  `<img src="data:image/png;base64,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"  style="width:16px;height:16px;display:inline-block;vertical-align:middle;border-radius:2px" alt="PS">`,
+  XB:  `<img src="data:image/png;base64,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"  style="width:16px;height:16px;display:inline-block;vertical-align:middle;border-radius:2px" alt="XB">`,
+  NS:  `<img src="data:image/png;base64,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"  style="width:16px;height:16px;display:inline-block;vertical-align:middle;border-radius:2px" alt="NS">`,
+  MO:  `<img src="data:image/png;base64,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"  style="width:16px;height:16px;display:inline-block;vertical-align:middle;border-radius:2px" alt="MO">`,
+  etc: `<img src="data:image/png;base64,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" style="width:16px;height:16px;display:inline-block;vertical-align:middle;border-radius:2px" alt="etc">`,
+};
+const PLAT_LABEL = { PC:'PC', PS:'PS', XB:'XB', NS:'NS', MO:'MO', etc:'etc' };
+
+function platIcon(p, size) {
+  var s = size || 13;
+  var svg = (PLAT_SVG[p] || PLAT_SVG['etc']).replace(/width:13px;height:13px/g, 'width:'+s+'px;height:'+s+'px');
+  return svg;
+}
+
+function makePlatHtml(plats, size) {
+  return plats.map(function(p){
+    return '<span class="picon picon-' + p + '">' + platIcon(p, size) + '</span>';
+  }).join('');
+}
+
+/* ════════════════════════════════════
+   CONFIG
+════════════════════════════════════ */
+const API_KEY = 'AIzaSyAaiSdUHdN0HoWv8wHHcMUru9mmm9JG3NQ';
+const CALENDAR_IDS = {
+  '게임 출시' : 'gameykr2014@gmail.com',
+  '게임 테스트': 'f2880cff5e99faebaf4d5184738db9414935f9468e61e0bb10bcec8d586ec9c5@group.calendar.google.com',
+  '게임 예약' : 'd5fccae3b724970effa9b7882a51e81bbbaefa3b6b572159d8f683e32d42f40c@group.calendar.google.com',
+  '게임 기록' : 'e4f85cc2ea47dde5db3dc375623fbc187a9965fd935d8eb0e51cd2f3df284567@group.calendar.google.com',
+  '게임 행사' : 'f72981731cc97bd97de58680a9ea4efe1aa9054e4c7fbac4680b87b5917e5fed@group.calendar.google.com',
+};
+const CAT_COLOR = {
+  '게임 출시':'release','게임 테스트':'test','게임 예약':'reserve','게임 기록':'record','게임 행사':'event'
+};
+const CAT_SHORT_KO = {'게임 출시':'출시','게임 테스트':'테스트','게임 예약':'예약','게임 기록':'기록','게임 행사':'행사'};
+// CAT_SHORT는 L.cat_short에서 동적으로 읽음 (아래 getter 사용)
+function getCatShort(cat) { return (typeof L !== 'undefined' && L.cat_short) ? (L.cat_short[cat] || cat) : (CAT_SHORT_KO[cat] || cat); }
+const DAYS = ['일','월','화','수','목','금','토'];
+const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+/* ════════════════════════════════════
+   STATE
+════════════════════════════════════ */
+let allEvents   = [];
+let activeCat   = 'all';
+let activePlat  = '전체';
+let searchQuery = '';
+
+const now = new Date();
+let viewYear  = now.getFullYear();
+let viewMonth = now.getMonth() + 1;  // 1~12
+let sideCalYear  = now.getFullYear();
+let sideCalMonth = now.getMonth() + 1;
+
+/* ════════════════════════════════════
+   HTML STRIP
+════════════════════════════════════ */
+function stripHtml(str) {
+  if (!str) return '';
+  return str
+    .replace(/<br\s*\/?>/gi,'\n')
+    .replace(/<\/p>/gi,'\n')
+    .replace(/<[^>]+>/g,'')
+    .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>')
+    .replace(/&nbsp;/g,' ').replace(/&#39;/g,"'").replace(/&quot;/g,'"');
+}
+
+/* ════════════════════════════════════
+   PLATFORM NORMALIZE
+════════════════════════════════════ */
+function parsePlats(str) {
+  const result = [];
+  str.split(/[\/,]+/).forEach(s => {
+    const u = s.trim().toUpperCase().replace(/\s+/g,'');
+    if (u === 'PC') result.push('PC');
+    else if (/^(PS[45S]?|PLAYSTATION\d*|P5|플스)$/.test(u)) result.push('PS');
+    else if (/^(XB[OSS]?|XS|XBOX.*|SERIES[XS]?)$/.test(u) || u.startsWith('XBOX')) result.push('XB');
+    else if (/^(NS\d?|NSW|SWITCH\d?|닌텐도|NINTENDO.*)$/.test(u)) result.push('NS');
+    else if (/^(MO|MOBILE|모바일|안드로이드|IOS|AOS|APP)$/.test(u)) result.push('MO');
+  });
+  return [...new Set(result)];
+}
+
+/* ════════════════════════════════════
+   PARSE EVENT
+════════════════════════════════════ */
+function parseEvent(item, cat) {
+  const startRaw = item.start.date || item.start.dateTime;
+  const d = new Date(startRaw);
+  const dateStr = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+
+  // 종료일
+  let endStr = '';
+  const endRaw = item.end?.date || item.end?.dateTime;
+  if (endRaw) {
+    let ed;
+    if (item.end.date) {
+      const [ey,em,eday] = item.end.date.split('-').map(Number);
+      ed = new Date(ey, em-1, eday);
+      ed.setDate(ed.getDate() - 1);
+    } else { ed = new Date(item.end.dateTime); }
+    const eStr = `${ed.getFullYear()}.${String(ed.getMonth()+1).padStart(2,'0')}.${String(ed.getDate()).padStart(2,'0')}`;
+    if (eStr !== dateStr) endStr = eStr;
+  }
+
+  const summary = item.summary || '';
+
+  // ① [] 플랫폼 파싱
+  let plat = [];
+  const sqRe = /\[([^\]]*)\]/g;
+  let sm;
+  while ((sm = sqRe.exec(summary)) !== null) {
+    plat = [...new Set([...plat, ...parsePlats(sm[1])])];
+  }
+  const hasSquare = plat.length > 0;
+  const summaryNoSq = summary.replace(/\s*\[[^\]]*\]/g,'').trim();
+
+  // ② () 파싱 ([] 없을 때만 플랫폼 읽기, 하위 호환)
+  let title = summaryNoSq;
+  let classify = '';
+  const brRe = /\(([^)]*)\)/g;
+  let bm;
+  const groups = [];
+  while ((bm = brRe.exec(summaryNoSq)) !== null) groups.push(bm[1].trim());
+
+  if (!hasSquare) {
+    let nonPlatCount = 0;
+    for (const g of groups) {
+      const pp = parsePlats(g);
+      if (pp.length) {
+        plat = [...new Set([...plat, ...pp])];
+        title = title.replace(`(${g})`,'').trim();
+      } else {
+        nonPlatCount++;
+        if (nonPlatCount === 1) { classify = g; title = title.replace(`(${g})`,'').trim(); }
+      }
+    }
+  }
+  title = title.trim();
+
+  // ③ description 파싱
+  let featured = false;
+  let imageUrl = '';
+  let tier = '';
+  if (item.description) {
+    const raw = item.description;
+    const clean = stripHtml(raw);
+
+    // 키:값 라인 파싱
+    for (const line of clean.split('\n')) {
+      const m = line.match(/^([^:：]{1,20})[：:]\s*(.+)/);
+      if (!m) continue;
+      const key = m[1].trim().replace(/^[\s•\-\*\·\▪\▸\►\○\●\◆\◇\☆\★]+/, '').toLowerCase().replace(/\s/g,'');
+      const val = m[2].trim();
+      if (/^플랫폼$|^platform$/.test(key) && val) {
+        const dp = parsePlats(val);
+        if (dp.length) plat = [...new Set([...plat, ...dp])];
+      }
+      if (/^분류$|^장르$|^genre$|^category$/.test(key) && val && !classify) classify = val;
+      if (/^비고$|^memo$|^note$/.test(key) && val && !classify) classify = val;
+      if (/^추천$|^hot$|^best$|^featured$|^pick$/.test(key)) {
+        featured = /^(y|yes|true|1|o)$/i.test(val.toLowerCase());
+        if (featured && !tier) tier = 'S'; // 추천:Y → S등급으로 통합
+      }
+      if (/^이미지$|^image$|^img$|^thumbnail$|^썸네일$/.test(key) && val) imageUrl = val;
+      if (/^등급$|^티어$|^tier$|^grade$|^rank$/.test(key) && val) tier = val.toUpperCase().replace(/\s/g,'').slice(0,2);
+    }
+
+    // 폴백: 키 파싱 실패 시 description에서 이미지 URL 직접 추출
+    if (!imageUrl) {
+      // href 속성에서 이미지 URL 추출 (Google Calendar는 링크를 <a href="">로 감쌈)
+      const hrefMatch = raw.match(/href=["']([^"']*\.(?:jpg|jpeg|png|gif|webp|JPG|PNG|JPEG)[^"']*?)["']/);
+      if (hrefMatch) imageUrl = hrefMatch[1];
+    }
+    if (!imageUrl) {
+      // plain URL에서 이미지 확장자 추출
+      const urlMatch = clean.match(/https?:\/\/[^\s"'<>]+\.(?:jpg|jpeg|png|gif|webp)(?:[?#][^\s"'<>]*)?/i);
+      if (urlMatch) imageUrl = urlMatch[0];
+    }
+  }
+
+  // 개발사/퍼블리셔/스토어 파싱
+  let developer = '', publisher = '', storeLinks = {};
+  if (item.description) {
+    const clean2 = stripHtml(item.description);
+    for (const line of clean2.split('\n')) {
+      const m2 = line.match(/^([^:：]{1,20})[：:]\s*(.+)/);
+      if (!m2) continue;
+      const k = m2[1].trim().replace(/^[\s•\-\*\·\▪\▸\►\○\●\◆\◇]+/, '').toLowerCase().replace(/\s/g,'');
+      const v = m2[2].trim();
+      if (/^개발사$|^developer$|^dev$/.test(k)) developer = v;
+      if (/^퍼블리셔$|^publisher$|^pub$/.test(k)) publisher = v;
+      if (/^steam$|^스팀$/.test(k)) storeLinks.steam = v;
+      if (/^playstation$|^ps$|^psstore$/.test(k)) storeLinks.ps = v;
+      if (/^xbox$|^xb$|^xboxstore$/.test(k)) storeLinks.xbox = v;
+      if (/^nintendo$|^ns$|^eshop$|^닌텐도$/.test(k)) storeLinks.nintendo = v;
+      if (/^공식사이트$|^official$|^website$|^홈페이지$/.test(k)) storeLinks.official = v;
+      if (/^appstore$|^앱스토어$|^ios$/.test(k)) storeLinks.appstore = v;
+      if (/^googleplay$|^구글플레이$|^aos$|^android$/.test(k)) storeLinks.googleplay = v;
+    }
+  }
+  return { date: dateStr, endDate: endStr, cat, title, plat, classify, featured, imageUrl, tier, developer, publisher, storeLinks, raw: item };
+}
+
+/* ════════════════════════════════════
+   FETCH CALENDAR
+════════════════════════════════════ */
+async function fetchCalendar(cat, calId, timeMin, timeMax) {
+  const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?`
+    + new URLSearchParams({ key: API_KEY, timeMin, timeMax, singleEvents: true, orderBy: 'startTime', maxResults: 200 });
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`[${cat}] ${r.status}`);
+  const data = await r.json();
+  return (data.items || []).map(item => parseEvent(item, cat));
+}
+
+/* ════════════════════════════════════
+   LOAD DATA
+════════════════════════════════════ */
+async function loadData() {
+  showSkeleton();
+  const y = viewYear, m = viewMonth;
+  const timeMin = new Date(y, m-1, 1).toISOString();
+  const timeMax = new Date(y, m, 1).toISOString();
+
+  const results = await Promise.allSettled(
+    Object.entries(CALENDAR_IDS).map(([cat, id]) => fetchCalendar(cat, id, timeMin, timeMax))
+  );
+
+  allEvents = [];
+  const errors = [];
+  results.forEach(r => {
+    if (r.status === 'fulfilled') allEvents.push(...r.value);
+    else errors.push(r.reason.message);
+  });
+
+  allEvents.sort((a,b) => a.date.localeCompare(b.date));
+  renderAll();
+  renderSidebar();
+
+  if (errors.length) console.warn('일부 캘린더 오류:', errors.join(', '));
+}
+
+/* ════════════════════════════════════
+   FILTER
+════════════════════════════════════ */
+function getFiltered() {
+  return allEvents.filter(ev => {
+    if (activeCat !== 'all' && ev.cat !== activeCat) return false;
+    if (activePlat !== '전체' && !ev.plat.includes(activePlat)) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      if (!ev.title.toLowerCase().includes(q) && !ev.classify.toLowerCase().includes(q)) return false;
+    }
+    if (activeTier && activeTier !== 'all') { if (!ev.tier || ev.tier.charAt(0) !== activeTier) return false; }
+    return true;
+  });
+}
+
+/* ════════════════════════════════════
+   RENDER ALL
+════════════════════════════════════ */
+function renderAll() {
+  eventStore.length = 0; // 매 렌더 시 초기화
+  const filtered = getFiltered();
+
+  // Y PICK 섹션
+  const picks = allEvents.filter(ev => ev.tier && ev.tier.charAt(0) === 'S');
+  renderYPick(picks);
+
+  // 행사 배너 (진행중)
+  const today = now.toISOString().slice(0,10).replace(/-/g,'.');
+  const activeEvents = allEvents.filter(ev => ev.cat === '게임 행사' && ev.date <= today && (ev.endDate ? ev.endDate >= today : ev.date === today));
+
+  // 배너에 올라간 이벤트는 목록에서 제외
+  const activeTitles = new Set(activeEvents.map(e => e.title + e.date));
+  const filteredWithoutBanner = filtered.filter(e => !activeTitles.has(e.title + e.date));
+
+  // 필터 적용 시 배너 숨기기 (카테고리/플랫폼/등급 선택된 상태)
+  const isFiltered = activeCat !== 'all' || activePlat !== '전체' || activeTier !== 'all' || searchQuery;
+  const bannersToShow = isFiltered ? [] : activeEvents;
+
+  // Y픽도 필터 적용 시 숨기기
+  if (isFiltered) {
+    document.getElementById('ypickSection').classList.remove('visible');
+  }
+
+  renderList(filteredWithoutBanner, bannersToShow, isFiltered);
+}
+
+/* ── Y PICK ── */
+function renderYPick(picks) {
+  const sec = document.getElementById('ypickSection');
+  const scroll = document.getElementById('ypickScroll');
+  const cnt = document.getElementById('ypickCount');
+
+  if (!picks.length) { sec.classList.remove('visible'); return; }
+  sec.classList.add('visible');
+  cnt.textContent = `${picks.length}개의 추천작`;
+
+  scroll.innerHTML = picks.map((ev, pi) => {
+    const ypickIdx = eventStore.indexOf(ev) !== -1 ? eventStore.indexOf(ev) : (() => { eventStore.push(ev); return eventStore.length - 1; })();
+    const cls = CAT_COLOR[ev.cat] || 'release';
+    const platHtml = makePlatHtml(ev.plat, 13);
+    const dateLabel = ev.endDate ? `${ev.date} ~ ${ev.endDate}` : ev.date;
+    const thumbStyle = getThumbGradient(ev.cat);
+    const imgTag = ev.imageUrl
+      ? `<img src="${ev.imageUrl}" onerror="this.style.display='none'" alt="" loading="lazy" decoding="async" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:1;">`
+      : '';
+    return `
+    <div class="ypick-card" onclick="openDetail(${ypickIdx})" style="cursor:pointer">
+      <div class="ypick-thumb" style="${thumbStyle}">
+        ${imgTag}
+        <div class="ypick-overlay"></div>
+        <div class="ypick-y-stamp">Y</div>
+      </div>
+      <div class="ypick-info">
+        <span class="ypick-cat-badge badge-${cls} badge">${getCatShort(ev.cat)}</span>
+        <div class="ypick-name">${ev.title}</div>
+        <div class="ypick-meta">${dateLabel}</div>
+        <div class="ypick-platforms">${platHtml}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── 행사 배너 ── */
+function renderEventBanners(evItems) {
+  if (!evItems.length) return '';
+  return evItems.map(ev => {
+    const bannerIdx = (() => { const i = eventStore.indexOf(ev); if(i!==-1) return i; eventStore.push(ev); return eventStore.length-1; })();
+    const dateLabel = ev.endDate ? `${ev.date} ~ ${ev.endDate}` : ev.date;
+    const platLabel = ev.plat.join(' · ') || '';
+    const imgHtml = ev.imageUrl
+      ? `<img src="${ev.imageUrl}" onerror="this.style.display='none'" alt=""
+             loading="lazy" decoding="async"
+             style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;">`
+      : '';
+    return `
+    <div class="event-banner" onclick="openDetail(${bannerIdx})" style="cursor:pointer">
+      <div class="ev-thumb" style="position:relative;${getThumbGradient(ev.cat)}">
+        ${imgHtml}
+      </div>
+      <div class="ev-body">
+        <div class="ev-period">${dateLabel}</div>
+        <div class="ev-title">${ev.title}</div>
+        <div class="ev-sub">${[platLabel, ev.classify].filter(Boolean).join(' · ')}</div>
+      </div>
+      <div class="ev-live">진행중</div>
+    </div>`;
+  }).join('');
+}
+
+/* ── 목록 ── */
+function renderList(filtered, activeEvents, isFiltered) {
+  const container = document.getElementById('mainContent');
+  if (!filtered.length && !activeEvents.length) {
+    // 필터 적용 시 빈 결과 → 전체에서 최근 이벤트 보여주기
+    if (isFiltered) {
+      const recent = allEvents.slice(0, 6);
+      container.innerHTML = `
+        <div style="padding:12px 4px 8px;font-size:13px;font-weight:700;color:var(--gray-400)">
+          선택한 조건의 일정이 없습니다. 최근 일정을 보여드릴게요.
+        </div>`;
+      const tempDiv = document.createElement('div');
+      const fakeList = document.createElement('div');
+      fakeList.className = 'game-list';
+      recent.forEach(ev => {
+        fakeList.innerHTML += renderCard(ev);
+      });
+      container.appendChild(fakeList);
+      return;
+    }
+    container.innerHTML = `<div class="empty-msg"><span class="ico">🎮</span>일정이 없습니다.</div>`;
+    return;
+  }
+
+  let html = renderEventBanners(activeEvents);
+
+  // 날짜별 그룹
+  const groups = {};
+  filtered.forEach(ev => {
+    if (!groups[ev.date]) groups[ev.date] = [];
+    groups[ev.date].push(ev);
+  });
+
+  const todayStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+
+  for (const [date, evs] of Object.entries(groups)) {
+    const d = new Date(date.replace(/\./g,'-'));
+    const dow = DAYS[d.getDay()];
+    const isToday = date === todayStr;
+    const todayTag = isToday ? `<span class="date-today-tag">오늘</span>` : '';
+    const [,mm,dd] = date.split('.');
+
+    html += `
+    <div class="date-section">
+      <div class="date-header">
+        <span class="date-label">${mm}월 ${dd}일 ${dow}요일</span>
+        ${todayTag}
+        <div class="date-line"></div>
+      </div>
+      <div class="game-list">
+        ${evs.map(ev => renderCard(ev)).join('')}
+      </div>
+    </div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+/* ── 카드 ── */
+
+let activeTier = 'all';
+function filterTier(el, tier) {
+  activeTier = tier;
+  document.querySelectorAll('.tier-tab, #tierAll').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  eventStore.length = 0;
+  renderAll();
+}
+
+/* 전역 이벤트 스토어 */
+const eventStore = [];
+
+function renderCard(ev) {
+  const idx = eventStore.length;
+  eventStore.push(ev);
+
+  const cls = CAT_COLOR[ev.cat] || 'release';
+  const platHtml = makePlatHtml(ev.plat, 13);
+  const dateLabel = ev.endDate ? `${ev.date} ~ ${ev.endDate}` : ev.date;
+  const classifyBadge = ev.classify ? `<span class="badge badge-genre">${ev.classify}</span>` : '';
+  const imgHtml = ev.imageUrl
+    ? `<img src="${ev.imageUrl}" onerror="this.style.display='none'" alt=""
+           loading="lazy" decoding="async"
+           style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;">`
+    : '';
+  const yStamp = (ev.tier && ev.tier.charAt(0) === 'S') ? `<div class="card-y-stamp">🔥</div>` : '';
+  const tierStamp = ev.tier ? `<div class="tier-badge tier-${ev.tier.charAt(0)}" style="position:absolute;bottom:4px;right:4px;">${ev.tier.charAt(0)}</div>` : '';
+  const featuredClass = ev.featured ? ' featured' : '';
+
+  return `
+  <div class="game-card${featuredClass}" onclick="openDetail(${idx})" style="cursor:pointer">
+    <div class="card-thumb" style="position:relative;${getThumbGradient(ev.cat)}">
+      ${imgHtml}${yStamp}${tierStamp}
+    </div>
+    <div class="card-body">
+      <div class="card-badges">
+        <span class="badge badge-${cls}">${getCatShort(ev.cat)}</span>
+        ${classifyBadge}
+      </div>
+      <div class="card-title">${ev.title}</div>
+      <div class="card-meta">
+        <span>${dateLabel}</span>
+        ${ev.plat.length ? `<div class="meta-dot"></div><div class="platform-icons">${platHtml}</div>` : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ════════════════════════════════════
+   SIDEBAR RENDER
+════════════════════════════════════ */
+function renderSidebar() {
+  // 통계
+  const cats = Object.keys(CAT_COLOR);
+  const statEl = document.getElementById('sideStats');
+  document.getElementById('sideStatTitle').textContent = `${viewMonth}월 현황`;
+  statEl.innerHTML = cats.slice(0,4).map(cat => {
+    const cnt = allEvents.filter(e => e.cat === cat).length;
+    return `<div class="stat-item"><div class="stat-num">${cnt}</div><div class="stat-label">${getCatShort(cat)}</div></div>`;
+  }).join('');
+
+  // 카테고리 nav
+  const catEl = document.getElementById('sideNavCat');
+  const total = allEvents.length;
+  if (!catEl) { /* 사이드바 없음 - upcoming으로 바로 진행 */ }
+  if (catEl) { const calSubUrls = {
+    '게임 출시': 'https://calendar.google.com/calendar/r?cid=gameykr2014%40gmail.com',
+    '게임 테스트': 'https://calendar.google.com/calendar/r?cid=f2880cff5e99faebaf4d5184738db9414935f9468e61e0bb10bcec8d586ec9c5%40group.calendar.google.com',
+    '게임 예약': 'https://calendar.google.com/calendar/r?cid=d5fccae3b724970effa9b7882a51e81bbbaefa3b6b572159d8f683e32d42f40c%40group.calendar.google.com',
+    '게임 기록': 'https://calendar.google.com/calendar/r?cid=e4f85cc2ea47dde5db3dc375623fbc187a9965fd935d8eb0e51cd2f3df284567%40group.calendar.google.com',
+    '게임 행사': 'https://calendar.google.com/calendar/r?cid=f72981731cc97bd97de58680a9ea4efe1aa9054e4c7fbac4680b87b5917e5fed%40group.calendar.google.com',
+  };
+  if (catEl) catEl.innerHTML = `
+    <div class="snav-item ${activeCat==='all'?'active':''}" onclick="filterCatSide(this,'all')">
+      <div class="snav-left"><div class="cat-dot" style="background:var(--gray-400)"></div>전체</div>
+      <span class="cnt-badge">${total}</span>
+    </div>`
+  + cats.map(cat => {
+    const cnt = allEvents.filter(e => e.cat === cat).length;
+    const dotColor = `var(--${CAT_COLOR[cat]})`;
+    const subUrl = calSubUrls[cat] || '';
+    const subBtn = subUrl
+      ? `<a href="${subUrl}" target="_blank" onclick="event.stopPropagation()"
+           style="width:18px;height:18px;border-radius:50%;background:var(--orange);color:white;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;text-decoration:none;flex-shrink:0;line-height:1" title="구독">+</a>`
+      : '';
+    return `<div class="snav-item ${activeCat===cat?'active':''}" onclick="filterCatSide(this,'${cat}')">
+      <div class="snav-left"><div class="cat-dot" style="background:${dotColor}"></div>${cat}</div>
+      <div style="display:flex;align-items:center;gap:4px"><span class="cnt-badge">${cnt}</span>${subBtn}</div>
+    </div>`;
+  }).join('');
+  } // end if(catEl)
+
+  // 다가오는 일정 (오늘 이후 6개)
+  const todayStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+  const upcoming = allEvents.filter(e => e.date >= todayStr).slice(0, 6);
+  const upEl = document.getElementById('sideUpcoming');
+  if (!upcoming.length) { upEl.innerHTML = `<div style="font-size:12px;color:var(--gray-400);padding:8px 0">일정이 없습니다</div>`; return; }
+  upEl.innerHTML = upcoming.map(ev => {
+    const upIdx = (() => { const i = eventStore.indexOf(ev); if(i!==-1) return i; eventStore.push(ev); return eventStore.length-1; })();
+    const [,mm,dd] = ev.date.split('.');
+    const isToday = ev.date === todayStr;
+    const cls = CAT_COLOR[ev.cat];
+    const platLabel = ev.plat.slice(0,3).join(' · ');
+    return `
+    <div class="upcoming-item" onclick="openDetail(${upIdx})" style="cursor:pointer">
+      <div class="up-date-box ${isToday?'today':''}">
+        <span class="up-month">${MONTHS[parseInt(mm)-1]}</span>
+        <span class="up-day">${parseInt(dd)}</span>
+      </div>
+      <div class="up-info">
+        <div class="up-title">${ev.title}</div>
+        <div class="up-meta">${platLabel || ev.classify || '—'}</div>
+      </div>
+      <span class="badge badge-${cls}" style="flex-shrink:0">${getCatShort(ev.cat)}</span>
+    </div>`;
+  }).join('');
+
+  // 미니 캘린더
+  renderSideCal();
+}
+
+/* ════════════════════════════════════
+   MINI CALENDAR
+════════════════════════════════════ */
+function renderSideCal() {
+  const el = document.getElementById('sideCalGrid');
+  const title = document.getElementById('sideCalTitle');
+  if (!el) return;
+  title.textContent = `${sideCalYear}년 ${sideCalMonth}월`;
+
+  const eventDays = new Set(
+    allEvents.filter(e => {
+      const [ey,em] = e.date.split('.').map(Number);
+      return ey === sideCalYear && em === sideCalMonth;
+    }).map(e => parseInt(e.date.split('.')[2]))
+  );
+
+  const firstDow = new Date(sideCalYear, sideCalMonth-1, 1).getDay();
+  const daysInMonth = new Date(sideCalYear, sideCalMonth, 0).getDate();
+  const todayD = now.getDate(), todayM = now.getMonth()+1, todayY = now.getFullYear();
+
+  let html = DAYS.map((d,i) => `<div class="cal-dow ${i===0?'sun':i===6?'sat':''}">${d}</div>`).join('');
+  for (let i = 0; i < firstDow; i++) html += `<div class="cal-day empty">·</div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dow = (firstDow + d - 1) % 7;
+    const isToday = d === todayD && sideCalMonth === todayM && sideCalYear === todayY;
+    const hasEv  = eventDays.has(d);
+    const cls = [
+      'cal-day',
+      isToday ? 'today' : '',
+      hasEv ? 'has-event' : '',
+      dow === 0 ? 'sun' : dow === 6 ? 'sat' : ''
+    ].filter(Boolean).join(' ');
+    html += `<div class="${cls}" onclick="jumpToDate('${sideCalYear}.${String(sideCalMonth).padStart(2,'0')}.${String(d).padStart(2,'0')}')">${d}</div>`;
+  }
+  el.innerHTML = html;
+}
+
+function sideCalNav(dir) {
+  sideCalMonth += dir;
+  if (sideCalMonth > 12) { sideCalMonth = 1; sideCalYear++; }
+  if (sideCalMonth < 1)  { sideCalMonth = 12; sideCalYear--; }
+  renderSideCal();
+}
+
+function jumpToDate(dateStr) {
+  const [y,m] = dateStr.split('.').map(Number);
+  if (y !== viewYear || m !== viewMonth) {
+    viewYear = y; viewMonth = m;
+    loadData();
+  }
+}
+
+/* ════════════════════════════════════
+   THUMB GRADIENT HELPER
+════════════════════════════════════ */
+const THUMB_GRADIENTS = {
+  '게임 출시' : ['#8B1A1A','#C0392B'],
+  '게임 테스트': ['#1B4332','#40916C'],
+  '게임 예약' : ['#4A1942','#C56BF0'],
+  '게임 기록' : ['#1A3A5C','#2980B9'],
+  '게임 행사' : ['#1B2838','#2a475e'],
+};
+function getThumbGradientVal(cat) {
+  const [c1,c2] = THUMB_GRADIENTS[cat] || ['#333','#555'];
+  return `linear-gradient(135deg,${c1},${c2})`;
+}
+function getThumbGradient(cat) {
+  return `background:${getThumbGradientVal(cat)}`;
+}
+
+/* ════════════════════════════════════
+   SKELETON
+════════════════════════════════════ */
+function showSkeleton() {
+  document.getElementById('mainContent').innerHTML = `
+    <div class="skeleton-list">
+      ${Array(4).fill(0).map(() => `
+      <div class="skeleton-card">
+        <div class="sk-thumb"></div>
+        <div class="sk-body">
+          <div class="sk-line short"></div>
+          <div class="sk-line mid"></div>
+          <div class="sk-line short"></div>
+        </div>
+      </div>`).join('')}
+    </div>`;
+  document.getElementById('ypickSection').classList.remove('visible');
+}
+
+/* ════════════════════════════════════
+   FILTER HANDLERS
+════════════════════════════════════ */
+// 칩 클릭
+['filterRow','filterRowPlat'].forEach(id => { const el = document.getElementById(id); if(!el) return; el.addEventListener('click', function(e) {
+  const chip = e.target.closest('.chip');
+  const ptab = e.target.closest('.ptab');
+
+  if (chip) {
+    activeCat = chip.dataset.cat;
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('inactive'));
+    if (activeCat !== 'all') {
+      document.querySelectorAll('.chip').forEach(c => {
+        if (c.dataset.cat !== activeCat) c.classList.add('inactive');
+      });
+    }
+    renderAll();
+  }
+
+  if (ptab) {
+    activePlat = ptab.dataset.plat;
+    document.querySelectorAll('#filterRowPlat .ptab').forEach(t => t.classList.remove('active'));
+    ptab.classList.add('active');
+    renderAll();
+  }
+}); });
+
+function filterCatSide(el, cat) {
+  activeCat = cat;
+  document.querySelectorAll('#sideNavCat .snav-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.chip').forEach(c => {
+    c.classList.remove('inactive');
+    if (cat !== 'all' && c.dataset.cat !== cat) c.classList.add('inactive');
+  });
+  renderAll();
+}
+
+function filterPlatSide(el, plat) {
+  activePlat = plat;
+  document.querySelectorAll('.sidebar-left .snav-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.ptab').forEach(t => {
+    t.classList.remove('active');
+    if (t.dataset.plat === plat) t.classList.add('active');
+  });
+  renderAll();
+}
+
+// 검색 (오버레이 방식으로 대체)
+
+/* ════ 검색 오버레이 ════ */
+const DAYS_KO = ['일','월','화','수','목','금','토'];
+
+function openSearch() {
+  bindSearchEvents();
+  document.getElementById('searchOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(function(){ document.getElementById('searchRealInput').focus(); }, 200);
+  renderSearchResults('');
+}
+
+
+function shareEvent(e) {
+  e.stopPropagation();
+  const url = window.location.href;
+  if (navigator.share) {
+    navigator.share({ title: document.title, url });
+  } else {
+    navigator.clipboard.writeText(url).then(() => {
+      alert('링크가 복사됐습니다.');
+    });
+  }
+}
+
+
+// 플랫폼 필터 탭에 아이콘 삽입
+function initPlatTabs() {
+  var plats = ['PC','PS','XB','NS','MO','etc'];
+  plats.forEach(function(p) {
+    var el = document.getElementById('ptab-' + p);
+    if (!el) return;
+    var icon = (PLAT_SVG[p]||'').replace(/width:13px;height:13px/g,'width:14px;height:14px');
+    el.innerHTML = icon + ' ' + PLAT_LABEL[p];
+    el.style.display = 'inline-flex';
+    el.style.alignItems = 'center';
+    el.style.gap = '4px';
+  });
+}
+
+
+function initSidePlatIcons() {
+  var map = {PC:'PC', PS:'PlayStation', XB:'Xbox', NS:'Nintendo Switch', MO:'Mobile'};
+  Object.entries(map).forEach(function([p, label]) {
+    var el = document.getElementById('side-' + p);
+    if (!el) return;
+    var inner = el.querySelector('.snav-left');
+    if (!inner) return;
+    var icon = (PLAT_SVG[p]||'').replace(/width:13px;height:13px/g,'width:16px;height:16px');
+    inner.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px">' + icon + ' ' + label + '</span>';
+  });
+}
+
+function closeSearch() {
+  document.getElementById('searchOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  document.getElementById('searchRealInput').value = '';
+}
+
+function highlightText(text, query) {
+  if (!query) return text;
+  var re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
+  return text.replace(re, '<mark>$1</mark>');
+}
+
+function renderSearchResults(query) {
+  var body = document.getElementById('searchBody');
+  var header = '';
+  var q = query.trim().toLowerCase();
+
+  if (!q) {
+    body.innerHTML = '<div class="search-empty"><span class="ico">🔍</span>검색어를 입력하세요</div>';
+    return;
+  }
+
+  var results = allEvents.filter(function(ev) {
+    return ev.title.toLowerCase().includes(q)
+      || (ev.classify && ev.classify.toLowerCase().includes(q));
+  });
+
+  if (!results.length) {
+    body.innerHTML = '<div class="search-empty"><span class="ico">😢</span>"' + query + '" 검색 결과가 없습니다</div>';
+    return;
+  }
+
+  var headerHtml = '<div class="search-result-header">"<strong>' + query + '</strong>" 검색 결과 — <strong>' + results.length + '건</strong></div>';
+
+  var itemsHtml = results.map(function(ev) {
+    var evIdx = eventStore.indexOf(ev);
+    if (evIdx === -1) { eventStore.push(ev); evIdx = eventStore.length - 1; }
+
+    var cls = CAT_COLOR[ev.cat] || 'release';
+    var catShort = getCatShort(ev.cat);
+    var dateParts = ev.date.split('.');
+    var d = new Date(parseInt(dateParts[0]), parseInt(dateParts[1])-1, parseInt(dateParts[2]));
+    var dowStr = DAYS_KO[d.getDay()] + '요일';
+    var dateDisp = (dateParts[1]||'').replace(/^0/,'') + '.' + (dateParts[2]||'').replace(/^0/,'');
+    var titleHl = highlightText(ev.title, query);
+    var platHtml = makePlatHtml(ev.plat.slice(0,3), 13);
+    var classifyHtml = ev.classify ? '<span class="badge badge-genre">'+ev.classify+'</span>' : '';
+    var tierHtml = ev.tier ? '<span class="tier-badge tier-'+ev.tier.charAt(0)+'" style="width:20px;height:20px;font-size:10px">'+ev.tier.charAt(0)+'</span>' : '';
+
+    return '<div class="search-item" onclick="closeSearch();openDetail('+evIdx+')">'
+      + '<div class="search-item-date">'
+      + '<div class="s-date-day">' + dateDisp + '</div>'
+      + '<div class="s-date-dow">' + dowStr + '</div>'
+      + '</div>'
+      + '<div class="search-item-body">'
+      + '<div class="search-item-badges">'
+      + '<span class="badge badge-'+cls+'">'+catShort+'</span>'
+      + classifyHtml + tierHtml
+      + '</div>'
+      + '<div class="search-item-title">' + titleHl + '</div>'
+      + '<div class="search-item-meta">'
+      + (ev.plat.length ? '<div class="platform-icons">' + platHtml + '</div>' : '')
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+
+  body.innerHTML = headerHtml + itemsHtml;
+}
+
+// 검색 input 이벤트 - openSearch 최초 호출 시 등록
+var _searchBound = false;
+function bindSearchEvents() {
+  if (_searchBound) return;
+  var inp = document.getElementById('searchRealInput');
+  if (!inp) return;
+  inp.addEventListener('input', function(e) { renderSearchResults(e.target.value); });
+  inp.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeSearch(); });
+  _searchBound = true;
+}
+
+
+function openDetail(evOrIdx) {
+  const ev = typeof evOrIdx === 'number' ? eventStore[evOrIdx] : evOrIdx;
+  const panel = document.getElementById('detailPanel');
+  const overlay = document.getElementById('panelOverlay');
+  const body = document.getElementById('panelBody');
+  const label = document.getElementById('panelHeaderLabel');
+
+  const cls = CAT_COLOR[ev.cat] || 'release';
+  const catShort = getCatShort(ev.cat) || ev.cat;
+  label.textContent = ev.cat;
+
+  const dateLabel = ev.endDate ? `${ev.date} ~ ${ev.endDate}` : ev.date;
+  const platHtml = ev.plat.length ? makePlatHtml(ev.plat, 16) : '<span style="color:var(--gray-400)">—</span>';
+
+  // description 원본 정제
+  const rawDesc = ev.raw?.description ? stripHtml(ev.raw.description) : '';
+  // 키:값 형태 라인 필터링 (분류:, 추천:, 이미지: 등 제거)
+  // 100자설명 키 값 추출
+  // 메타 키 목록 (제거 대상)
+  const META_KEYS = /^(분류|장르|genre|category|플랫폼|platform|추천|hot|best|featured|pick|이미지|image|img|thumbnail|비고|note|memo|공식사이트|official|website|홈페이지|steam|스팀|playstation|ps|xbox|xb|nintendo|ns|eshop|닌텐도|appstore|앱스토어|ios|googleplay|구글플레이|aos|android|개발사|developer|dev|퍼블리셔|publisher|pub|등급|티어|tier|grade|rank|유튜브|youtube|100자설명|100자소개|소개|출시일|링크|steam|공식)$/;
+
+  let desc100 = '';
+  const descLines = [];
+
+  rawDesc.split('\n').forEach(line => {
+    const bare = line.replace(/^[\s•\-\*·▪▸►○●◆◇]+/, '').trim();
+    if (!bare) return;
+    // 순수 URL 라인 제거
+    if (/^https?:\/\/\S+$/.test(bare)) return;
+    // 키:값 분리
+    const km = bare.match(/^([^:：]{1,15})[：:]\s*(.*)$/);
+    if (km) {
+      const key = km[1].trim().toLowerCase().replace(/\s/g, '');
+      const val = km[2].trim();
+      // 100자설명 키 추출
+      if (/^(100자설명|100자소개|소개)$/.test(key) && val) { desc100 = val; return; }
+      // 메타 키 제거
+      if (META_KEYS.test(key)) return;
+    }
+    // 남은 라인 = 일반 설명 텍스트
+    descLines.push(bare);
+  });
+
+  const descText = desc100 || descLines.join('\n').trim();
+
+  const heroStyle = getThumbGradient(ev.cat);
+  const imgTag = ev.imageUrl
+    ? `<img src="${ev.imageUrl}" onerror="this.style.display='none'" alt="" loading="lazy" decoding="async" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;">`
+    : '';
+  const yBadge = (ev.tier && ev.tier.charAt(0) === 'S') ? `<span class="panel-y-badge">🔥 GAMEY PICK</span>` : '';
+  // S등급은 GAMEY PICK 배지로 대체, 나머지만 등급 배지 표시
+  const tierBadge = (ev.tier && ev.tier.charAt(0) !== 'S') ? `<span class="tier-badge tier-${ev.tier.charAt(0)} panel-tier-badge">${ev.tier.charAt(0)} 등급</span>` : '';
+  const classifyBadge = ev.classify ? `<span class="badge badge-genre">${ev.classify}</span>` : '';
+
+  // Google Calendar 링크
+  const gcalUrl = ev.raw?.htmlLink || '';
+
+  // YouTube URL 추출 (description 또는 별도 필드)
+  const rawDescFull = ev.raw?.description ? stripHtml(ev.raw.description) : '';
+  const ytMatch = rawDescFull.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+  const ytVideoId = ytMatch ? ytMatch[1] : null;
+
+  // YouTube 임베드 HTML
+  const ytHtml = ytVideoId ? `
+    <div class="youtube-thumb" id="ytThumb_${ytVideoId}" onclick="playYoutube('${ytVideoId}')">
+      <img src="https://img.youtube.com/vi/${ytVideoId}/mqdefault.jpg" alt="YouTube thumbnail">
+      <div class="youtube-play">
+        <div class="youtube-play-btn">
+          <svg viewBox="0 0 24 24" fill="white" style="width:24px;height:24px;margin-left:3px"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+      </div>
+    </div>` : '';
+
+  // 스토어 링크 버튼 생성
+  // 스토어 SVG 로고
+  // URL에서 사이트 감지해서 적절한 레이블/아이콘 반환
+  function detectSiteInfo(url) {
+    try {
+      const host = new URL(url).hostname.toLowerCase();
+      if (host.includes('store.steampowered') || host.includes('steam')) return {label:'Steam', cls:'steam', favicon:'https://store.steampowered.com/favicon.ico'};
+      if (host.includes('playstation')) return {label:'PlayStation Store', cls:'ps', favicon:'https://www.playstation.com/favicon.ico'};
+      if (host.includes('xbox') || host.includes('microsoft')) return {label:'Xbox Store', cls:'xbox', favicon:'https://www.xbox.com/favicon.ico'};
+      if (host.includes('nintendo')) return {label:'Nintendo eShop', cls:'nintendo', favicon:'https://www.nintendo.com/favicon.ico'};
+      if (host.includes('play.google')) return {label:'Google Play', cls:'official', favicon:'https://play.google.com/favicon.ico'};
+      if (host.includes('apps.apple') || host.includes('apple.com')) return {label:'App Store', cls:'official', favicon:'https://www.apple.com/favicon.ico'};
+      if (host.includes('youtube') || host.includes('youtu.be')) return {label:'YouTube', cls:'official', favicon:'https://www.youtube.com/favicon.ico'};
+      // 그 외: 사이트 파비콘 + 도메인명
+      const domain = host.replace('www.','').split('.')[0];
+      return {label: domain, cls:'official', favicon: 'https://' + host + '/favicon.ico'};
+    } catch(e) { return {label:'링크', cls:'official', favicon: null}; }
+  }
+
+  const storeSVG = {
+    steam: '<svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor"><path d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.031 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.624 0 11.998-5.376 11.998-12S18.603 0 11.979 0z"/></svg>',
+    ps: '<svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor"><path d="M8.985 2.596v17.548l3.915 1.261V6.688s3.298.881 3.298 4.427c0 3.889-3.567 5.338-3.567 5.338s3.7.728 7.394-1.261c3.217-1.742 2.84-8.423 2.84-8.423S21.193.637 14.753.637C11.271.637 8.985 2.596 8.985 2.596zm-7.471 14.871c0 2.2 2.882 3.118 5.703 2.17l4.413-1.59v-3.251l-5.703 2.146C4.416 17.464 3.37 17.095 3.37 16.327c0-.77 1.046-1.259 1.046-1.259l4.096-1.523v-3.282L1.92 12.586S1.514 13.59 1.514 17.467z"/></svg>',
+    xbox: '<svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor"><path d="M4.102 6.198C3.108 7.43 2.5 9.4 2.5 12c0 2.6.608 4.57 1.602 5.802L9.5 12 4.102 6.198zM12 2.5c-1.1 0-2.17.18-3.18.5L12 6.3l3.18-3.3C14.17 2.68 13.1 2.5 12 2.5zm0 19c1.1 0 2.17-.18 3.18-.5L12 17.7l-3.18 3.3c1.01.32 2.08.5 3.18.5zm7.898-15.302C18.892 7.43 18.284 9.4 18.284 12c0 2.6.608 4.57 1.614 5.802L21.5 12l-1.602-5.802zM12 8.5L7.5 12l4.5 4.5L16.5 12 12 8.5z"/></svg>',
+    nintendo: '<svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor"><path d="M9.401 0H14.6C19.8 0 24 4.2 24 9.401v5.198C24 19.8 19.8 24 14.599 24H9.4C4.2 24 0 19.8 0 14.599V9.4C0 4.2 4.2 0 9.401 0zm-.843 5.6L5.6 12l2.958 6.4h2.087L7.687 12l2.958-6.4H8.558zm6.284 0h-2.086L15.8 12l-2.958 6.4h2.086L17.9 12l-2.958-6.4z"/></svg>',
+    googleplay: '<svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor"><path d="M3.18 23.76c.3.17.63.24.96.2l13.2-11.77-2.83-2.83-11.33 14.4zm-1.8-19.9v16.28c0 .56.15 1.06.42 1.45L13.57 12 1.8 2.41c-.27.4-.42.9-.42 1.45zM20.74 9.9l-2.88-1.64-3.2 2.85 3.2 2.85 2.91-1.66c.83-.47.83-1.93-.03-2.4zM4.14.48C3.81.13 3.37-.04 2.91.01L15.93 12 13.1 14.83l-9-14.35z"/></svg>',
+    appstore: '<svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>',
+    official: '<svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+  };
+  const storeDefs = [
+    {key:'steam',     label:'Steam',          cls:'steam'},
+    {key:'ps',        label:'PlayStation',    cls:'ps'},
+    {key:'xbox',      label:'Xbox',           cls:'xbox'},
+    {key:'nintendo',  label:'Nintendo',       cls:'nintendo'},
+    {key:'googleplay',label:'Google Play',    cls:'official'},
+    {key:'appstore',  label:'App Store',      cls:'official'},
+    {key:'official',  label:null,             cls:'official'},
+  ];
+  // 공식 링크는 URL 분석으로 버튼 생성
+  const officialLinks = [];
+  if (ev.storeLinks) {
+    Object.entries(ev.storeLinks).forEach(([k, url]) => {
+      // 키별 고정 정보
+      const fixedMap = {
+        steam: {label:'Steam', cls:'steam'},
+        ps: {label:'PlayStation Store', cls:'ps'},
+        xbox: {label:'Xbox Store', cls:'xbox'},
+        nintendo: {label:'Nintendo eShop', cls:'nintendo'},
+        googleplay: {label:'Google Play', cls:'official'},
+        appstore: {label:'App Store', cls:'official'},
+      };
+      if (fixedMap[k]) {
+        officialLinks.push({url, ...fixedMap[k], favicon: null, svg: storeSVG[k]||''});
+      } else {
+        // official 등 나머지는 URL 분석
+        const info = detectSiteInfo(url);
+        officialLinks.push({url, label: info.label, cls: info.cls, favicon: info.favicon, svg: storeSVG['official']||''});
+      }
+    });
+  }
+
+  const storeHtml = officialLinks.length ? `
+    <div class="store-links">
+      ${officialLinks.map(link => {
+        const iconHtml = link.favicon
+          ? `<img src="${link.favicon}" onerror="this.style.display='none'" style="width:14px;height:14px;border-radius:2px;object-fit:contain" loading="lazy">`
+          : link.svg;
+        return `<a class="store-btn ${link.cls}" href="${link.url}" target="_blank" rel="noopener">${iconHtml} ${link.label}</a>`;
+      }).join('')}
+    </div>` : '';
+
+  // 메타 정보 (개발사/퍼블리셔)
+  const metaHtml = (ev.developer||ev.publisher) ? `
+    <div class="panel-meta-section">
+      ${ev.developer ? `<div class="panel-meta-row"><span class="panel-meta-label">개발사</span><span class="panel-meta-value">${ev.developer}</span></div>` : ''}
+      ${ev.publisher ? `<div class="panel-meta-row"><span class="panel-meta-label">퍼블리셔</span><span class="panel-meta-value">${ev.publisher}</span></div>` : ''}
+    </div>` : '';
+
+  const evIdx = eventStore.indexOf(ev) !== -1 ? eventStore.indexOf(ev) : (() => { eventStore.push(ev); return eventStore.length-1; })();
+
+  body.innerHTML = `
+    <div class="panel-hero" style="${heroStyle}">
+      ${imgTag}
+      <div class="panel-hero-overlay"></div>
+      <button class="panel-share-btn" onclick="shareEvent(event)" title="공유">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        </svg>
+      </button>
+      <div class="panel-hero-bottom">
+        <div class="panel-hero-badges">
+          <span class="badge badge-${cls}">${catShort}</span>
+          ${classifyBadge}
+          ${tierBadge}
+          ${yBadge}
+        </div>
+        <div class="panel-hero-title">${ev.title}</div>
+      </div>
+    </div>
+    <div class="panel-content">
+      <div class="panel-info-list">
+        <div class="panel-info-row">
+          <span class="panel-info-label">날짜</span>
+          <span class="panel-info-value">${dateLabel}</span>
+        </div>
+        <div class="panel-info-row">
+          <span class="panel-info-label">플랫폼</span>
+          <span class="panel-info-value">
+            <div class="panel-plats">${platHtml}</div>
+          </span>
+        </div>
+        ${ev.classify ? `<div class="panel-info-row"><span class="panel-info-label">분류</span><span class="panel-info-value">${ev.classify}</span></div>` : ''}
+        ${ev.classify ? '' : `<div class="panel-info-row"><span class="panel-info-label">분류</span><span class="panel-info-value">${getCatShort(ev.cat)}</span></div>`}
+      </div>
+      ${metaHtml}
+      ${storeHtml}
+      ${ytHtml}
+      ${descText ? `<div class="panel-desc">${descText}</div>` : ''}
+    </div>
+    <button class="panel-add-btn" onclick="openAddModalWithEvent(${evIdx})">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:18px;height:18px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      일정 추가
+    </button>
+    <div class="comment-section" id="panelComments">
+      <div class="comment-title">댓글 <span class="comment-count" id="commentCount">0</span></div>
+      <div id="commentInputWrap"></div>
+      <div class="comment-list" id="commentList"></div>
+    </div>
+  `;
+  // 댓글 입력 영역 동적 삽입 (template literal 충돌 방지)
+  const commentKey = ev.date + '_' + ev.title.replace(/[^a-zA-Z0-9가-힣]/g,'');
+  const ciWrap = document.getElementById('commentInputWrap');
+  if (ciWrap) {
+    // 로그인 여부 상관없이 항상 입력창 표시
+    const savedNick = localStorage.getItem('gamey_comment_nick') || (currentUser ? currentUser.name : '');
+    ciWrap.innerHTML = '<div style="display:flex;gap:6px;margin-bottom:6px">'
+      + '<input id="commentNick" type="text" placeholder="닉네임" maxlength="20" value="' + savedNick + '"'
+      + ' style="flex:1;padding:8px 12px;border:1.5px solid #E4E4E4;border-radius:8px;font-family:inherit;font-size:13px;outline:none">'
+      + (currentUser ? '<span style="font-size:11px;color:var(--gray-400);align-self:center;white-space:nowrap">Google 로그인됨</span>'
+        : '<button onclick="handleLogin()" style="display:inline-flex;align-items:center;gap:5px;padding:7px 10px;background:white;border:1.5px solid #dadce0;border-radius:8px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;color:#3c4043">'+'<svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>'+'Google 로그인</button>')
+      + '</div>'
+      + '<textarea class="comment-textarea" id="commentInput" placeholder="댓글을 입력하세요..."></textarea>'
+      + '<button class="comment-submit" onclick="submitComment(\'' + commentKey + '\')">등록</button>'
+      + '<div style="clear:both"></div>';
+  }
+  renderComments(commentKey);
+
+  panel.classList.add('open');
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDetail() {
+  document.getElementById('detailPanel').classList.remove('open');
+  document.getElementById('panelOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ESC 키로 닫기
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+
+/* ════════════════════════════════════
+   GOOGLE OAUTH
+════════════════════════════════════ */
+const GOOGLE_CLIENT_ID = '108753841480-2ms49d8bml81mt8ejqiul1t8hgaqruqc.apps.googleusercontent.com'; // ← Google Cloud Console에서 발급한 OAuth Client ID 입력
+let currentUser = null;
+
+function initGoogleAuth() {
+  // Google Identity Services (GSI) 로드
+  const script = document.createElement('script');
+  script.src = 'https://accounts.google.com/gsi/client';
+  script.onload = () => {
+    if (!GOOGLE_CLIENT_ID) return; // Client ID 없으면 스킵
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: onGoogleSignIn,
+      auto_select: true,
+    });
+  };
+  document.head.appendChild(script);
+
+  // 저장된 사용자 복원
+  try {
+    const saved = JSON.parse(localStorage.getItem('gamey_user') || 'null');
+    if (saved) { currentUser = saved; updateUserUI(); }
+  } catch(e) {}
+}
+
+function onGoogleSignIn(response) {
+  // JWT decode (base64)
+  const payload = JSON.parse(atob(response.credential.split('.')[1]));
+  const savedName = localStorage.getItem('gamey_display_name');
+  currentUser = {
+    name: savedName || payload.name,
+    googleName: payload.name,
+    email: payload.email,
+    avatar: payload.picture,
+    sub: payload.sub,
+  };
+  localStorage.setItem('gamey_user', JSON.stringify(currentUser));
+  updateUserUI();
+}
+
+
+/* ════ 닉네임 로그인 모달 ════ */
+function openNicknameLogin() {
+  var m = document.getElementById('nicknameLoginModal');
+  if (!m) return;
+  m.style.display = 'flex';
+  setTimeout(function(){ var i=document.getElementById('nicknameInput'); if(i) i.focus(); }, 80);
+}
+function closeNicknameModal() {
+  var m = document.getElementById('nicknameLoginModal');
+  if (m) m.style.display = 'none';
+}
+function loginWithNickname() {
+  var name = (document.getElementById('nicknameInput').value || '').trim();
+  if (!name) return;
+  currentUser = { name: name, googleName: name, email: '', avatar: '', sub: 'nick_' + Date.now() };
+  localStorage.setItem('gamey_user', JSON.stringify(currentUser));
+  updateUserUI();
+  closeNicknameModal();
+}
+function triggerGoogleLoginComment() {
+  if (!GOOGLE_CLIENT_ID) { openNicknameLogin(); return; }
+  if (typeof google !== 'undefined') google.accounts.id.prompt();
+}
+function triggerGoogleLogin() {
+  if (!GOOGLE_CLIENT_ID) {
+    var msg = document.getElementById('googleLoginMsg');
+    if (msg) { msg.style.display='block'; setTimeout(()=>msg.style.display='none', 3000); }
+    return;
+  }
+  closeNicknameModal();
+  if (typeof google !== 'undefined') google.accounts.id.prompt();
+}
+
+/* ════ 댓글 시스템 ════ */
+function getCommentKey(key){ return 'gamey_cmt_' + key; }
+
+function loadComments(key){
+  try { return JSON.parse(localStorage.getItem(getCommentKey(key)) || '[]'); }
+  catch(e){ return []; }
+}
+
+function renderComments(key){
+  var list = document.getElementById('commentList');
+  var cnt  = document.getElementById('commentCount');
+  if (!list) return;
+  var comments = loadComments(key);
+  if (cnt) cnt.textContent = comments.length;
+  if (!comments.length) {
+    list.innerHTML = '<div class="comment-empty">첫 번째 댓글을 남겨보세요!</div>';
+    return;
+  }
+  list.innerHTML = comments.map(function(c){
+    return '<div class="comment-item">'
+      + '<div class="comment-item-header">'
+      + '<div class="comment-avatar">' + c.name.charAt(0).toUpperCase() + '</div>'
+      + '<span class="comment-author">' + c.name + '</span>'
+      + (c.verified ? '<span style="font-size:10px;background:#E8F4FD;color:#1B6CB2;padding:1px 5px;border-radius:4px;margin-left:4px">✓</span>' : '')
+      + '<span class="comment-date">' + c.date + '</span>'
+      + '</div>'
+      + '<div class="comment-text">' + c.text + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function submitComment(key){
+  var ta = document.getElementById('commentInput');
+  var nickEl = document.getElementById('commentNick');
+  if (!ta || !ta.value.trim()) { if(ta) ta.focus(); return; }
+  var name = (nickEl ? nickEl.value.trim() : '') || (currentUser ? currentUser.name : '익명');
+  if (!name) name = '익명';
+  // 닉네임 저장
+  localStorage.setItem('gamey_comment_nick', name);
+  var comments = loadComments(key);
+  var now2 = new Date();
+  var ds = now2.getFullYear()+'.'+(now2.getMonth()+1).toString().padStart(2,'0')+'.'+now2.getDate().toString().padStart(2,'0');
+  comments.push({ name: name, text: ta.value.trim(), date: ds, verified: !!currentUser });
+  localStorage.setItem(getCommentKey(key), JSON.stringify(comments));
+  ta.value = '';
+  renderComments(key);
+}
+
+function handleLogin() {
+  if (currentUser) {
+    // 이미 로그인 상태면 드롭다운 토글
+    document.getElementById('userMenu').classList.toggle('open');
+    return;
+  }
+  if (!GOOGLE_CLIENT_ID) { openNicknameLogin(); return; }
+  google.accounts.id.prompt();
+}
+
+function handleLogout() {
+  currentUser = null;
+  localStorage.removeItem('gamey_user');
+  updateUserUI();
+  document.getElementById('userMenu').classList.remove('open');
+}
+
+function saveDisplayName() {
+  const name = document.getElementById('displayNameInput').value.trim();
+  if (!name) return;
+  if (currentUser) {
+    currentUser.name = name;
+    localStorage.setItem('gamey_user', JSON.stringify(currentUser));
+    localStorage.setItem('gamey_display_name', name);
+    updateUserUI();
+  }
+}
+
+function updateUserUI() {
+  const loginBtn = document.getElementById('gnbLoginBtn');
+  const userMenu = document.getElementById('userMenu');
+  const fab = document.getElementById('fabBtn');
+  if (currentUser) {
+    loginBtn.style.display = 'none';
+    userMenu.style.display = 'block';
+    const avatar = document.getElementById('userAvatar');
+    avatar.src = currentUser.avatar || '';
+    if (!currentUser.avatar) {
+      avatar.style.cssText = 'width:34px;height:34px;border-radius:50%;background:var(--orange);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;cursor:pointer;border:2px solid var(--orange);';
+    }
+    document.getElementById('displayNameInput').value = currentUser.name || '';
+    if (fab) fab.style.display = 'flex';
+  } else {
+    loginBtn.style.display = 'flex';
+    userMenu.style.display = 'none';
+    if (fab) fab.style.display = 'none';
+  }
+}
+
+/* ════════════════════════════════════
+   언어 선택기 (단일 파일)
+════════════════════════════════════ */
+const I18N = {
+  ko: {
+    search: '게임 이름으로 검색...', login: '로그인',
+    all: '전체', release: '출시', test: '테스트', reserve: '예약', record: '기록', event: '행사',
+    cat_all: '전체', cat_release: '게임 출시', cat_test: '게임 테스트',
+    cat_reserve: '게임 예약', cat_record: '게임 기록', cat_event: '게임 행사',
+    platform: '플랫폼', category: '카테고리', upcoming: '다가오는 일정',
+    stat: '월 현황', today: '오늘', ongoing: '진행중', empty: '일정이 없습니다.',
+    gcal: 'Google Calendar에서 보기', pick_sub: '이달의 주목작', date_label: '날짜',
+    classify: '분류', nav_home: '홈', nav_cal: '달력', nav_search: '검색', nav_my: '내 정보',
+    add_event: '일정 추가', cat_short: {
+      '게임 출시':'출시','게임 테스트':'테스트','게임 예약':'예약','게임 기록':'기록','게임 행사':'행사'
+    }
+  },
+  en: {
+    search: 'Search games...', login: 'Login',
+    all: 'All', release: 'Release', test: 'Test', reserve: 'Pre-order', record: 'Record', event: 'Event',
+    cat_all: 'All', cat_release: 'Game Release', cat_test: 'Game Test',
+    cat_reserve: 'Pre-order', cat_record: 'Record', cat_event: 'Game Event',
+    platform: 'Platform', category: 'Category', upcoming: 'Upcoming',
+    stat: ' Overview', today: 'Today', ongoing: 'Ongoing', empty: 'No events.',
+    gcal: 'View in Google Calendar', pick_sub: 'Featured this month', date_label: 'Date',
+    classify: 'Genre', nav_home: 'Home', nav_cal: 'Calendar', nav_search: 'Search', nav_my: 'My',
+    add_event: 'Add Event', cat_short: {
+      '게임 출시':'Release','게임 테스트':'Test','게임 예약':'Pre-order','게임 기록':'Record','게임 행사':'Event'
+    }
+  },
+  zh: {
+    search: '搜索游戏...', login: '登录',
+    all: '全部', release: '发布', test: '测试', reserve: '预约', record: '记录', event: '活动',
+    cat_all: '全部', cat_release: '游戏发布', cat_test: '游戏测试',
+    cat_reserve: '游戏预约', cat_record: '游戏记录', cat_event: '游戏活动',
+    platform: '平台', category: '分类', upcoming: '即将到来',
+    stat: '月概况', today: '今天', ongoing: '进行中', empty: '暂无日程。',
+    gcal: '在Google日历中查看', pick_sub: '本月推荐', date_label: '日期',
+    classify: '分类', nav_home: '首页', nav_cal: '日历', nav_search: '搜索', nav_my: '我的',
+    add_event: '添加日程', cat_short: {
+      '게임 출시':'发布','게임 테스트':'测试','게임 예약':'预约','게임 기록':'记录','게임 행사':'活动'
+    }
+  },
+  ja: {
+    search: 'ゲームを検索...', login: 'ログイン',
+    all: '全て', release: 'リリース', test: 'テスト', reserve: '予約', record: '記録', event: 'イベント',
+    cat_all: '全て', cat_release: 'ゲームリリース', cat_test: 'ゲームテスト',
+    cat_reserve: 'ゲーム予約', cat_record: 'ゲーム記録', cat_event: 'ゲームイベント',
+    platform: 'プラットフォーム', category: 'カテゴリ', upcoming: '近日のスケジュール',
+    stat: '月の状況', today: '今日', ongoing: '進行中', empty: 'スケジュールがありません。',
+    gcal: 'Googleカレンダーで見る', pick_sub: '今月のおすすめ', date_label: '日付',
+    classify: 'ジャンル', nav_home: 'ホーム', nav_cal: 'カレンダー', nav_search: '検索', nav_my: 'マイページ',
+    add_event: '日程追加', cat_short: {
+      '게임 출시':'リリース','게임 테스트':'テスト','게임 예약':'予約','게임 기록':'記録','게임 행사':'イベント'
+    }
+  }
+};
+
+let currentLang = localStorage.getItem('gamey_lang') || 'ko';
+let L = I18N[currentLang];
+
+function setLang(lang) {
+  currentLang = lang;
+  L = I18N[lang];
+  localStorage.setItem('gamey_lang', lang);
+  applyLang();
+  renderAll();
+  renderSidebar();
+}
+
+function applyLang() {
+  // 언어 버튼 active 상태
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === currentLang);
+  });
+  // 검색 placeholder
+  const si = document.getElementById('searchInput');
+  if (si) si.placeholder = L.search;
+  // 로그인 버튼 텍스트
+  const ll = document.getElementById('gnbLoginLabel');
+  if (ll) ll.textContent = L.login;
+  // 필터 칩
+  const chips = { all:'전체', release:'출시', test:'테스트', reserve:'예약', record:'기록', event:'행사' };
+  document.querySelectorAll('.chip').forEach(c => {
+    const cat = c.dataset.cat;
+    if (cat === 'all') { c.childNodes[c.childNodes.length-1].textContent = L.all; }
+    else {
+      const map = {'게임 출시':'release','게임 테스트':'test','게임 예약':'reserve','게임 기록':'record','게임 행사':'event'};
+      const key = map[cat];
+      if (key) {
+        const textNode = [...c.childNodes].find(n => n.nodeType === 3);
+        if (textNode) textNode.textContent = L[key];
+      }
+    }
+  });
+  // 하단 네비
+  const navLabels = document.querySelectorAll('.nav-label');
+  const navKeys = ['nav_home','nav_cal','nav_search','nav_my'];
+  navLabels.forEach((el, i) => { if (navKeys[i]) el.textContent = L[navKeys[i]]; });
+  // FAB title
+  const fab = document.getElementById('fabBtn');
+  if (fab) fab.title = L.add_event;
+}
+
+/* ════════════════════════════════════
+   YouTube 플레이어
+════════════════════════════════════ */
+function playYoutube(videoId) {
+  const thumb = document.getElementById('ytThumb_' + videoId);
+  if (!thumb) return;
+  const iframe = document.createElement('div');
+  iframe.className = 'youtube-embed';
+  iframe.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+  thumb.replaceWith(iframe);
+}
+
+/* ════════════════════════════════════
+   일정 추가 (Google Calendar 링크)
+════════════════════════════════════ */
+function openAddModal() {
+  if (!currentUser) { handleLogin(); return; }
+  // 오늘 날짜 기본값
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('addDateStart').value = today;
+  document.getElementById('addDateEnd').value = '';
+  document.getElementById('addTitle').value = '';
+  document.getElementById('addClassify').value = '';
+  document.getElementById('addDesc').value = '';
+  document.getElementById('addImage').value = '';
+  document.getElementById('addYoutube').value = '';
+  document.querySelectorAll('.plat-check').forEach(p => p.classList.remove('selected'));
+  document.getElementById('addModalOverlay').classList.add('open');
+}
+
+function closeAddModal() {
+  document.getElementById('addModalOverlay').classList.remove('open');
+}
+
+function togglePlat(el) {
+  el.classList.toggle('selected');
+}
+
+function submitAddEvent() {
+  const title = document.getElementById('addTitle').value.trim();
+  const cat   = document.getElementById('addCat').value;
+  const classify = document.getElementById('addClassify').value.trim();
+  const dateStart = document.getElementById('addDateStart').value;
+  const dateEnd   = document.getElementById('addDateEnd').value;
+  const desc  = document.getElementById('addDesc').value.trim();
+  const image = document.getElementById('addImage').value.trim();
+  const yt    = document.getElementById('addYoutube').value.trim();
+
+  if (!title || !dateStart) {
+    alert('게임 이름과 시작일은 필수입니다.');
+    return;
+  }
+
+  const plats = [...document.querySelectorAll('.plat-check.selected')].map(p => p.dataset.plat);
+
+  // description 조합
+  const descParts = [];
+  if (classify) descParts.push('분류:' + classify);
+  if (plats.length) descParts.push('플랫폼:' + plats.join('/'));
+  if (image) descParts.push('이미지:' + image);
+  if (yt) descParts.push(yt);
+  if (desc) descParts.push(desc);
+  const author = currentUser?.name || '';
+  if (author) descParts.push('작성자:' + author);
+
+  // 제목 조합 (기존 형식)
+  const fullTitle = plats.length ? `${title}[${plats.join('/')}]` : title;
+
+  // Google Calendar 이벤트 추가 URL
+  const calId = CALENDAR_IDS[cat] || '';
+  const startFmt = dateStart.replace(/-/g,'');
+  const endDate  = dateEnd ? new Date(dateEnd) : new Date(dateStart);
+  if (!dateEnd) endDate.setDate(endDate.getDate() + 1);
+  const endFmt = endDate.toISOString().slice(0,10).replace(/-/g,'');
+
+  const gcalUrl = 'https://calendar.google.com/calendar/r/eventedit?' + new URLSearchParams({
+    text: fullTitle,
+    dates: startFmt + '/' + endFmt,
+    details: descParts.join('\n'),
+    add: calId,
+  });
+
+  window.open(gcalUrl, '_blank');
+  closeAddModal();
+}
+
+// 모달 오버레이 클릭으로 닫기
+window.addEventListener('load', function(){
+  var ov = document.getElementById('addModalOverlay');
+  if(ov) ov.addEventListener('click', function(e){ if(e.target===this) closeAddModal(); });
+  var nm = document.getElementById('nicknameLoginModal');
+  if(nm) nm.addEventListener('click', function(e){ if(e.target===this) closeNicknameModal(); });
+});
+
+
+
+/* ════════════════════════════════════
+   INIT
+════════════════════════════════════ */
+// URL 파라미터 처리 (?date=2026.04.02)
+const urlParams = new URLSearchParams(location.search);
+const urlDate = urlParams.get('date');
+if (urlDate) {
+  const [uy, um] = urlDate.split('.').map(Number);
+  if (uy && um) { viewYear = uy; viewMonth = um; }
+}
+
+applyLang();
+initGoogleAuth();
+applyLang();
+initGoogleAuth();
+initPlatTabs();
+initSidePlatIcons();
+loadData();
+</script>
+
+<!-- ════ DETAIL SLIDE PANEL ════ -->
+<div class="panel-overlay" id="panelOverlay" onclick="closeDetail()"></div>
+<div class="detail-panel" id="detailPanel">
+  <div class="panel-header">
+    <button class="panel-close" onclick="closeDetail()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+    </button>
+    <span class="panel-header-label" id="panelHeaderLabel">상세 정보</span>
+  </div>
+  <div class="panel-body" id="panelBody"></div>
+</div>
+
+<!-- ════ ADD EVENT MODAL ════ -->
+<div class="add-modal-overlay" id="addModalOverlay">
+  <div class="add-modal">
+    <h2>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:22px;height:22px;color:var(--orange)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      일정 추가
+    </h2>
+    <div class="form-group">
+      <label class="form-label">게임 / 이벤트 이름 *</label>
+      <input class="form-input" id="addTitle" type="text" placeholder="예: 붉은사막 (Crimson Desert)">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">카테고리 *</label>
+        <select class="form-select" id="addCat">
+          <option value="게임 출시">게임 출시</option>
+          <option value="게임 테스트">게임 테스트</option>
+          <option value="게임 예약">게임 예약</option>
+          <option value="게임 기록">게임 기록</option>
+          <option value="게임 행사">게임 행사</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">분류 / 장르</label>
+        <input class="form-input" id="addClassify" type="text" placeholder="예: RPG, FPS">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">시작일 *</label>
+        <input class="form-input" id="addDateStart" type="date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">종료일 (선택)</label>
+        <input class="form-input" id="addDateEnd" type="date">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">플랫폼</label>
+      <div class="form-plat-group" id="addPlatGroup">
+        <div class="plat-check" data-plat="PC" onclick="togglePlat(this)">PC</div>
+        <div class="plat-check" data-plat="PS" onclick="togglePlat(this)">PS</div>
+        <div class="plat-check" data-plat="XB" onclick="togglePlat(this)">XB</div>
+        <div class="plat-check" data-plat="NS" onclick="togglePlat(this)">NS</div>
+        <div class="plat-check" data-plat="MO" onclick="togglePlat(this)">MO</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">설명</label>
+      <textarea class="form-textarea" id="addDesc" placeholder="게임 소개, 링크 등 자유 입력"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">이미지 URL (선택)</label>
+      <input class="form-input" id="addImage" type="url" placeholder="https://...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">YouTube URL (선택)</label>
+      <input class="form-input" id="addYoutube" type="url" placeholder="https://youtube.com/watch?v=...">
+    </div>
+    <div class="form-btn-row">
+      <button class="form-cancel-btn" onclick="closeAddModal()">취소</button>
+      <button class="form-submit-btn" onclick="submitAddEvent()">Google Calendar에 추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- FAB 일정 추가 버튼 -->
+<button class="fab" id="fabBtn" onclick="openAddModal()" title="일정 추가" style="display:none">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:24px;height:24px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</button>
+
+
+<!-- ADD EVENT MODAL -->
+<div class="add-modal-overlay" id="addModalOverlay">
+  <div class="add-modal">
+    <h2>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:22px;height:22px;color:var(--orange)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      일정 추가
+    </h2>
+    <div class="form-group">
+      <label class="form-label">게임 / 이벤트 이름 *</label>
+      <input class="form-input" id="addTitle" type="text" placeholder="예: 붉은사막 (Crimson Desert)">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">카테고리 *</label>
+        <select class="form-select" id="addCat">
+          <option value="게임 출시">게임 출시</option>
+          <option value="게임 테스트">게임 테스트</option>
+          <option value="게임 예약">게임 예약</option>
+          <option value="게임 기록">게임 기록</option>
+          <option value="게임 행사">게임 행사</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">분류 / 장르</label>
+        <input class="form-input" id="addClassify" type="text" placeholder="예: RPG">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">시작일 *</label>
+        <input class="form-input" id="addDateStart" type="date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">종료일 (선택)</label>
+        <input class="form-input" id="addDateEnd" type="date">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">플랫폼</label>
+      <div class="form-plat-group">
+        <div class="plat-check" data-plat="PC" onclick="togglePlat(this)">PC</div>
+        <div class="plat-check" data-plat="PS" onclick="togglePlat(this)">PS</div>
+        <div class="plat-check" data-plat="XB" onclick="togglePlat(this)">XB</div>
+        <div class="plat-check" data-plat="NS" onclick="togglePlat(this)">NS</div>
+        <div class="plat-check" data-plat="MO" onclick="togglePlat(this)">MO</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">설명</label>
+      <textarea class="form-textarea" id="addDesc" placeholder="게임 소개, 공식 사이트 등"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">이미지 URL</label>
+      <input class="form-input" id="addImage" type="url" placeholder="https://...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">YouTube URL</label>
+      <input class="form-input" id="addYoutube" type="url" placeholder="https://youtube.com/watch?v=...">
+    </div>
+    <div class="form-btn-row">
+      <button class="form-cancel-btn" onclick="closeAddModal()">취소</button>
+      <button class="form-submit-btn" onclick="submitAddEvent()">Google Calendar에 추가</button>
+    </div>
+  </div>
+</div>
+<button class="fab" id="fabBtn" onclick="openAddModal()" title="일정 추가">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:24px;height:24px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</button>
+
+<!-- NICKNAME LOGIN MODAL -->
+<div id="nicknameLoginModal" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.5);align-items:center;justify-content:center;padding:20px">
+  <div style="background:white;border-radius:20px;padding:28px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+    <h3 style="font-size:17px;font-weight:900;margin-bottom:6px">로그인</h3>
+    <p style="font-size:13px;color:var(--gray-600);margin-bottom:20px">닉네임으로 바로 사용하거나 Google 계정으로 로그인하세요.</p>
+    <input id="nicknameInput" type="text" placeholder="닉네임 입력" maxlength="20"
+      style="width:100%;padding:11px 14px;border:1.5px solid var(--gray-200);border-radius:10px;font-family:inherit;font-size:14px;outline:none;margin-bottom:10px"
+      onfocus="this.style.borderColor='var(--orange)'" onblur="this.style.borderColor='var(--gray-200)'">
+    <button onclick="loginWithNickname()"
+      style="width:100%;padding:12px;background:var(--orange);color:white;border:none;border-radius:10px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:10px">
+      닉네임으로 계속
+    </button>
+    <div style="text-align:center;font-size:12px;color:var(--gray-400);margin-bottom:10px">또는</div>
+    <button id="googleSignInBtn" onclick="triggerGoogleLogin()"
+      style="width:100%;padding:11px;background:white;border:1.5px solid #dadce0;border-radius:10px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;color:#3c4043">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+      Google 계정으로 로그인
+    </button>
+    <div id="googleLoginMsg" style="display:none;font-size:12px;color:#E53935;text-align:center;padding:6px 0">Google 로그인은 배포 후 이용 가능합니다. 닉네임으로 이용해주세요.</div>
+    <button onclick="closeNicknameModal()"
+      style="width:100%;padding:10px;background:transparent;border:none;font-family:inherit;font-size:13px;color:var(--gray-400);cursor:pointer;margin-top:6px">
+      취소
+    </button>
+  </div>
+</div>
+
+<!-- SEARCH OVERLAY -->
+<div class="search-overlay" id="searchOverlay" onclick="if(event.target===this)closeSearch()">
+  <div class="search-panel" id="searchPanel">
+    <div class="search-header">
+      <div class="search-input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input class="search-real-input" id="searchRealInput"
+          placeholder="게임 이름으로 검색..." autocomplete="off">
+      </div>
+      <button class="search-close-btn" onclick="closeSearch()">닫기</button>
+    </div>
+    <div class="search-body" id="searchBody">
+      <div class="search-empty">
+        <span class="ico">🔍</span>
+        검색어를 입력하세요
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
