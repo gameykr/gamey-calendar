@@ -39,22 +39,21 @@ body { font-family: 'Noto Sans KR', sans-serif; background: var(--gray-50); colo
 .gnb {
   position: sticky; top: 0; z-index: 300;
   background: white; border-bottom: 1px solid var(--gray-200);
-  overflow: visible;
 }
 .gnb-inner {
   display: flex; align-items: center;
   height: 64px; padding: 0 16px; gap: 10px;
   max-width: 1280px; margin: 0 auto;
 }
-.logo { display:flex; align-items:center; gap:10px; text-decoration:none; flex-shrink:0; }
-.logo-icon { height:72px; width:auto; display:block; flex-shrink:0; margin: -8px 0; }
-.logo-text { display:flex; flex-direction:column; line-height:1; gap:3px; }
-.logo-gamey { font-size:15px; font-weight:900; color:var(--orange); letter-spacing:1.2px; }
-.logo-calendar { font-size:22px; font-weight:900; color:var(--orange); letter-spacing:-0.3px; }
+.logo { display:flex; align-items:center; gap:8px; text-decoration:none; flex-shrink:0; }
+.logo-icon { height:52px; width:auto; display:block; flex-shrink:0; }
+.logo-text-line { display:flex; align-items:baseline; gap:5px; line-height:1; white-space:nowrap; }
+.logo-gamey { font-size:15px; font-weight:900; color:var(--orange); letter-spacing:0.5px; }
+.logo-calendar { font-size:19px; font-weight:900; color:var(--orange); letter-spacing:-0.3px; }
 @media (min-width: 768px) {
-  .logo-icon { height:90px; margin: -12px 0; }
-  .logo-gamey { font-size:18px; }
-  .logo-calendar { font-size:27px; }
+  .logo-icon { height:60px; }
+  .logo-gamey { font-size:17px; }
+  .logo-calendar { font-size:22px; }
 }
 
 .gnb-search { flex: 1; position: relative; }
@@ -148,10 +147,13 @@ body { font-family: 'Noto Sans KR', sans-serif; background: var(--gray-50); colo
 .ypick-header {
   display: flex; align-items: center; gap: 10px;
   margin-bottom: 12px; padding: 0 2px;
+  flex-wrap: nowrap; min-width: 0;
 }
 .ypick-title {
   display: flex; align-items: center; gap: 8px;
   font-size: 15px; font-weight: 900; color: var(--gray-900);
+  white-space: nowrap; min-width: 0; flex-shrink: 1;
+  overflow: hidden; text-overflow: ellipsis;
 }
 .ypick-badge {
   display: inline-flex; align-items: center; gap: 4px;
@@ -159,8 +161,14 @@ body { font-family: 'Noto Sans KR', sans-serif; background: var(--gray-50); colo
   color: white; font-size: 12px; font-weight: 900;
   padding: 3px 10px; border-radius: 20px;
   letter-spacing: 0.5px;
+  flex-shrink: 0; white-space: nowrap;
 }
-.ypick-sub { font-size: 12px; color: var(--gray-400); margin-left: auto; }
+.ypick-sub { font-size: 12px; color: var(--gray-400); margin-left: auto; flex-shrink: 0; white-space: nowrap; }
+@media (max-width: 767px) {
+  .ypick-badge { font-size: 10px; padding: 2px 8px; }
+  .ypick-title { font-size: 13px; }
+  .ypick-sub { display: none; }
+}
 
 .ypick-scroll {
   display: flex; gap: 12px;
@@ -1187,8 +1195,8 @@ img {
 <nav class="gnb">
   <div class="gnb-inner">
     <a class="logo" href="#">
-      <img class="logo-icon" src="/logo.webp" srcset="/logo.webp 1x, /logo@2x.webp 2x" alt="GAME CALENDAR" width="39" height="42" fetchpriority="high" decoding="async">
-      <span class="logo-text">
+      <img class="logo-icon" src="/logo.webp" srcset="/logo.webp 1x, /logo@2x.webp 2x" alt="GAME CALENDAR" width="55" height="60" fetchpriority="high" decoding="async">
+      <span class="logo-text-line">
         <span class="logo-gamey">GAME</span>
         <span class="logo-calendar">CALENDAR</span>
       </span>
