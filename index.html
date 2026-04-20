@@ -1206,20 +1206,13 @@ img {
 
 .mnav-popup {
   display: none;
-  position: absolute; top: calc(100% + 8px); right: 0;
+  position: fixed; top: 0; left: 0;
   width: 280px; padding: 16px;
   background: white; border: 1px solid var(--gray-200);
   border-radius: 14px; box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-  z-index: 400;
+  z-index: 1000;
 }
 .mnav-popup.open { display: block; }
-.mnav-popup::before {
-  content: ''; position: absolute; top: -6px; right: 18px;
-  width: 12px; height: 12px; background: white;
-  border-top: 1px solid var(--gray-200);
-  border-left: 1px solid var(--gray-200);
-  transform: rotate(45deg);
-}
 .mnav-label {
   display: block; font-size: 11px; font-weight: 700;
   color: var(--gray-400); margin-bottom: 6px;
@@ -1277,9 +1270,9 @@ img {
 }
 .mnav-go-btn:hover { background: #e85e00; }
 
-/* 모바일: 팝업을 우측 정렬 유지하되 너비만 조정 */
+/* 모바일: 팝업 너비만 조정 (위치는 JS가 계산) */
 @media (max-width: 500px) {
-  .mnav-popup { width: 260px; right: -8px; }
+  .mnav-popup { width: calc(100vw - 24px); max-width: 320px; }
 }
 </style>
 </head>
@@ -2920,17 +2913,30 @@ function mnavInit() {
   for (let y = MNAV_YEAR_MAX; y >= MNAV_YEAR_MIN; y--) {
     opts += `<option value="${y}"${y === mnavSelectedYear ? ' selected' : ''}>${y}년</option>`;
   }
-  sel.innerHTML = opts;
+  if (sel) sel.innerHTML = opts;
 
   mnavRenderMonthGrid();
   mnavUpdateBtnLabel();
 
+  // Fallback: 버튼에 직접 이벤트 리스너 바인딩 (onclick 인라인이 혹시 무력화된 경우 대비)
+  const btn = document.getElementById('mnavBtn');
+  if (btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleMnav(e);
+    });
+    console.log('[mnav] 버튼 이벤트 리스너 바인딩 완료');
+  } else {
+    console.warn('[mnav] mnavBtn 요소를 찾을 수 없음');
+  }
+
   // 바깥 클릭 닫기
   document.addEventListener('click', (e) => {
     const pop = document.getElementById('mnavPopup');
-    const btn = document.getElementById('mnavBtn');
-    if (!pop || !btn) return;
-    if (pop.classList.contains('open') && !pop.contains(e.target) && !btn.contains(e.target)) {
+    const btn2 = document.getElementById('mnavBtn');
+    if (!pop || !btn2) return;
+    if (pop.classList.contains('open') && !pop.contains(e.target) && !btn2.contains(e.target)) {
       mnavClose();
     }
   });
@@ -2942,7 +2948,6 @@ function mnavInit() {
 
   // 쿼리 파라미터로 초기 로드된 경우 해당 월로 스크롤
   if (qy || qm) {
-    // 데이터 로드 후 스크롤 (loadData는 비동기라 여유 시간)
     setTimeout(() => mnavScrollToMonth(mnavSelectedYear, mnavSelectedMonth), 1500);
   }
 }
@@ -2977,11 +2982,60 @@ function toggleMnav(ev) {
   if (isOpen) {
     mnavClose();
   } else {
+    mnavPositionPopup();
     pop.classList.add('open');
     btn.classList.add('active');
     btn.setAttribute('aria-expanded', 'true');
   }
 }
+
+function mnavPositionPopup() {
+  const pop = document.getElementById('mnavPopup');
+  const btn = document.getElementById('mnavBtn');
+  if (!pop || !btn) return;
+  const rect = btn.getBoundingClientRect();
+  // 임시로 display:block으로 해야 width 측정 가능
+  const prevDisplay = pop.style.display;
+  pop.style.visibility = 'hidden';
+  pop.style.display = 'block';
+  const popW = pop.offsetWidth;
+  const popH = pop.offsetHeight;
+  pop.style.display = prevDisplay;
+  pop.style.visibility = '';
+
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const GAP = 8;
+  const MARGIN = 12;
+
+  // 기본: 버튼 아래 + 우측 정렬
+  let top = rect.bottom + GAP;
+  let left = rect.right - popW;
+
+  // 화면 왼쪽 넘침 방지
+  if (left < MARGIN) left = MARGIN;
+  // 화면 오른쪽 넘침 방지
+  if (left + popW > vw - MARGIN) left = vw - popW - MARGIN;
+  // 화면 아래 넘침: 위로 띄우기
+  if (top + popH > vh - MARGIN) {
+    const above = rect.top - GAP - popH;
+    if (above >= MARGIN) top = above;
+    else top = Math.max(MARGIN, vh - popH - MARGIN);
+  }
+
+  pop.style.top = top + 'px';
+  pop.style.left = left + 'px';
+}
+
+// 스크롤/리사이즈 시 열려있으면 위치 재계산
+window.addEventListener('scroll', () => {
+  const pop = document.getElementById('mnavPopup');
+  if (pop?.classList.contains('open')) mnavPositionPopup();
+}, { passive: true });
+window.addEventListener('resize', () => {
+  const pop = document.getElementById('mnavPopup');
+  if (pop?.classList.contains('open')) mnavPositionPopup();
+});
 
 function mnavClose() {
   const pop = document.getElementById('mnavPopup');
