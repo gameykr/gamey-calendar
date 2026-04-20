@@ -1187,6 +1187,100 @@ img {
 }
 .panel-share-btn:hover { transform: scale(1.1); }
 .panel-share-btn svg { width: 16px; height: 16px; color: var(--gray-800); }
+/* ════════════════════════════════════
+   MONTH NAVIGATOR (연/월 점프)
+   ════════════════════════════════════ */
+.mnav-wrap { position: relative; flex-shrink: 0; }
+.mnav-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 20px;
+  border: 1.5px solid var(--orange); background: white;
+  color: var(--orange); font-family: inherit;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  white-space: nowrap; transition: all 0.12s;
+}
+.mnav-btn:hover { background: var(--orange-light); }
+.mnav-btn.active { background: var(--orange); color: white; }
+.mnav-btn .mnav-cal-ico { font-size: 14px; line-height: 1; }
+.mnav-btn .mnav-arrow { font-size: 10px; opacity: 0.7; }
+
+.mnav-popup {
+  display: none;
+  position: absolute; top: calc(100% + 8px); right: 0;
+  width: 280px; padding: 16px;
+  background: white; border: 1px solid var(--gray-200);
+  border-radius: 14px; box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  z-index: 400;
+}
+.mnav-popup.open { display: block; }
+.mnav-popup::before {
+  content: ''; position: absolute; top: -6px; right: 18px;
+  width: 12px; height: 12px; background: white;
+  border-top: 1px solid var(--gray-200);
+  border-left: 1px solid var(--gray-200);
+  transform: rotate(45deg);
+}
+.mnav-label {
+  display: block; font-size: 11px; font-weight: 700;
+  color: var(--gray-400); margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+.mnav-year-row { display: flex; gap: 6px; margin-bottom: 14px; }
+.mnav-year-select {
+  flex: 1; padding: 8px 10px;
+  border: 1.5px solid var(--gray-200); border-radius: 8px;
+  font-family: inherit; font-size: 14px; font-weight: 700;
+  color: var(--gray-800); background: white;
+  outline: none; cursor: pointer;
+}
+.mnav-year-select:focus { border-color: var(--orange); }
+.mnav-year-nav {
+  width: 34px; height: 34px; border-radius: 8px;
+  border: 1.5px solid var(--gray-200); background: white;
+  cursor: pointer; color: var(--gray-600);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; flex-shrink: 0;
+  transition: all 0.12s;
+}
+.mnav-year-nav:hover { border-color: var(--orange); color: var(--orange); }
+.mnav-month-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 6px; margin-bottom: 14px;
+}
+.mnav-month-cell {
+  padding: 9px 0; border-radius: 8px;
+  border: 1.5px solid var(--gray-200); background: white;
+  font-family: inherit; font-size: 13px; font-weight: 700;
+  color: var(--gray-800); cursor: pointer;
+  transition: all 0.12s;
+}
+.mnav-month-cell:hover { border-color: var(--orange); color: var(--orange); }
+.mnav-month-cell.selected {
+  background: var(--orange); color: white; border-color: var(--orange);
+}
+.mnav-month-cell.current {
+  border-color: var(--orange); color: var(--orange);
+}
+.mnav-month-cell.selected.current { color: white; }
+.mnav-btn-row { display: flex; gap: 6px; }
+.mnav-action-btn {
+  flex: 1; padding: 10px; border-radius: 10px;
+  font-family: inherit; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all 0.12s; border: none;
+}
+.mnav-today-btn {
+  background: var(--gray-100); color: var(--gray-600);
+}
+.mnav-today-btn:hover { background: var(--gray-200); }
+.mnav-go-btn {
+  background: var(--orange); color: white;
+}
+.mnav-go-btn:hover { background: #e85e00; }
+
+/* 모바일: 팝업을 우측 정렬 유지하되 너비만 조정 */
+@media (max-width: 500px) {
+  .mnav-popup { width: 260px; right: -8px; }
+}
 </style>
 </head>
 <body>
@@ -1269,6 +1363,33 @@ img {
         <div class="ptab tier-tab" data-tier="B" onclick="filterTier(this,'B')" style="font-weight:900;color:#6c5ce7;border-color:#a29bfe">B</div>
         <div class="ptab tier-tab" data-tier="C" onclick="filterTier(this,'C')" style="font-weight:900;color:#00897b;border-color:#55efc4">C</div>
         <div class="ptab tier-tab" data-tier="D" onclick="filterTier(this,'D')" style="font-weight:900;color:#888">D</div>
+      </div>
+      <div class="filter-vsep"></div>
+      <!-- 연/월 선택 그룹 -->
+      <div class="filter-group" style="margin-left:auto">
+        <div class="mnav-wrap">
+          <button class="mnav-btn" id="mnavBtn" type="button" onclick="toggleMnav(event)" aria-haspopup="true" aria-expanded="false">
+            <span class="mnav-cal-ico">📅</span>
+            <span id="mnavBtnLabel">2026년 4월</span>
+            <span class="mnav-arrow">▼</span>
+          </button>
+          <div class="mnav-popup" id="mnavPopup" role="dialog" aria-label="연월 선택">
+            <span class="mnav-label">연도</span>
+            <div class="mnav-year-row">
+              <button class="mnav-year-nav" type="button" onclick="mnavShiftYear(-10)" title="-10년">‹‹</button>
+              <button class="mnav-year-nav" type="button" onclick="mnavShiftYear(-1)" title="-1년">‹</button>
+              <select class="mnav-year-select" id="mnavYearSelect" onchange="mnavOnYearChange(this.value)"></select>
+              <button class="mnav-year-nav" type="button" onclick="mnavShiftYear(1)" title="+1년">›</button>
+              <button class="mnav-year-nav" type="button" onclick="mnavShiftYear(10)" title="+10년">››</button>
+            </div>
+            <span class="mnav-label">월</span>
+            <div class="mnav-month-grid" id="mnavMonthGrid"></div>
+            <div class="mnav-btn-row">
+              <button class="mnav-action-btn mnav-today-btn" type="button" onclick="mnavGoToday()">오늘로</button>
+              <button class="mnav-action-btn mnav-go-btn" type="button" onclick="mnavGo()">이동</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1735,10 +1856,10 @@ function renderList(filtered, activeEvents, isFiltered) {
     const dow = DAYS[d.getDay()];
     const isToday = date === todayStr;
     const todayTag = isToday ? `<span class="date-today-tag">오늘</span>` : '';
-    const [,mm,dd] = date.split('.');
+    const [yyyy,mm,dd] = date.split('.');
 
     html += `
-    <div class="date-section">
+    <div class="date-section" data-month="${yyyy}-${mm}" data-date="${date}">
       <div class="date-header">
         <span class="date-label">${mm}월 ${dd}일 ${dow}요일</span>
         ${todayTag}
@@ -2776,6 +2897,192 @@ initGoogleAuth();
 initPlatTabs();
 initSidePlatIcons();
 loadData();
+
+/* ════════════════════════════════════
+   MONTH NAVIGATOR
+   ════════════════════════════════════ */
+const MNAV_YEAR_MIN = 1970;
+const MNAV_YEAR_MAX = 2050;
+let mnavSelectedYear = new Date().getFullYear();
+let mnavSelectedMonth = new Date().getMonth() + 1; // 1-12
+
+function mnavInit() {
+  // URL 쿼리에서 초기값 읽기
+  const qs = new URLSearchParams(location.search);
+  const qy = parseInt(qs.get('y'), 10);
+  const qm = parseInt(qs.get('m'), 10);
+  if (qy >= MNAV_YEAR_MIN && qy <= MNAV_YEAR_MAX) mnavSelectedYear = qy;
+  if (qm >= 1 && qm <= 12) mnavSelectedMonth = qm;
+
+  // 연도 <select> 채우기 (최신이 위)
+  const sel = document.getElementById('mnavYearSelect');
+  let opts = '';
+  for (let y = MNAV_YEAR_MAX; y >= MNAV_YEAR_MIN; y--) {
+    opts += `<option value="${y}"${y === mnavSelectedYear ? ' selected' : ''}>${y}년</option>`;
+  }
+  sel.innerHTML = opts;
+
+  mnavRenderMonthGrid();
+  mnavUpdateBtnLabel();
+
+  // 바깥 클릭 닫기
+  document.addEventListener('click', (e) => {
+    const pop = document.getElementById('mnavPopup');
+    const btn = document.getElementById('mnavBtn');
+    if (!pop || !btn) return;
+    if (pop.classList.contains('open') && !pop.contains(e.target) && !btn.contains(e.target)) {
+      mnavClose();
+    }
+  });
+
+  // ESC 닫기
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') mnavClose();
+  });
+
+  // 쿼리 파라미터로 초기 로드된 경우 해당 월로 스크롤
+  if (qy || qm) {
+    // 데이터 로드 후 스크롤 (loadData는 비동기라 여유 시간)
+    setTimeout(() => mnavScrollToMonth(mnavSelectedYear, mnavSelectedMonth), 1500);
+  }
+}
+
+function mnavRenderMonthGrid() {
+  const grid = document.getElementById('mnavMonthGrid');
+  const now = new Date();
+  const curY = now.getFullYear();
+  const curM = now.getMonth() + 1;
+  let html = '';
+  for (let m = 1; m <= 12; m++) {
+    const isSelected = m === mnavSelectedMonth;
+    const isCurrent = mnavSelectedYear === curY && m === curM;
+    const cls = ['mnav-month-cell'];
+    if (isSelected) cls.push('selected');
+    if (isCurrent) cls.push('current');
+    html += `<button type="button" class="${cls.join(' ')}" onclick="mnavSelectMonth(${m})">${m}월</button>`;
+  }
+  grid.innerHTML = html;
+}
+
+function mnavUpdateBtnLabel() {
+  const lbl = document.getElementById('mnavBtnLabel');
+  if (lbl) lbl.textContent = `${mnavSelectedYear}년 ${mnavSelectedMonth}월`;
+}
+
+function toggleMnav(ev) {
+  if (ev) ev.stopPropagation();
+  const pop = document.getElementById('mnavPopup');
+  const btn = document.getElementById('mnavBtn');
+  const isOpen = pop.classList.contains('open');
+  if (isOpen) {
+    mnavClose();
+  } else {
+    pop.classList.add('open');
+    btn.classList.add('active');
+    btn.setAttribute('aria-expanded', 'true');
+  }
+}
+
+function mnavClose() {
+  const pop = document.getElementById('mnavPopup');
+  const btn = document.getElementById('mnavBtn');
+  if (pop) pop.classList.remove('open');
+  if (btn) {
+    btn.classList.remove('active');
+    btn.setAttribute('aria-expanded', 'false');
+  }
+}
+
+function mnavOnYearChange(v) {
+  const y = parseInt(v, 10);
+  if (y >= MNAV_YEAR_MIN && y <= MNAV_YEAR_MAX) {
+    mnavSelectedYear = y;
+    mnavRenderMonthGrid();
+  }
+}
+
+function mnavShiftYear(delta) {
+  let y = mnavSelectedYear + delta;
+  if (y < MNAV_YEAR_MIN) y = MNAV_YEAR_MIN;
+  if (y > MNAV_YEAR_MAX) y = MNAV_YEAR_MAX;
+  mnavSelectedYear = y;
+  const sel = document.getElementById('mnavYearSelect');
+  if (sel) sel.value = String(y);
+  mnavRenderMonthGrid();
+}
+
+function mnavSelectMonth(m) {
+  mnavSelectedMonth = m;
+  mnavRenderMonthGrid();
+}
+
+function mnavGoToday() {
+  const now = new Date();
+  mnavSelectedYear = now.getFullYear();
+  mnavSelectedMonth = now.getMonth() + 1;
+  const sel = document.getElementById('mnavYearSelect');
+  if (sel) sel.value = String(mnavSelectedYear);
+  mnavRenderMonthGrid();
+  mnavGo();
+}
+
+function mnavGo() {
+  mnavUpdateBtnLabel();
+  // URL 반영 (history 미변경 방식: replaceState)
+  try {
+    const url = new URL(location.href);
+    url.searchParams.set('y', String(mnavSelectedYear));
+    url.searchParams.set('m', String(mnavSelectedMonth));
+    history.replaceState(null, '', url.toString());
+  } catch(e) { /* noop */ }
+  mnavClose();
+  mnavScrollToMonth(mnavSelectedYear, mnavSelectedMonth);
+}
+
+function mnavScrollToMonth(year, month) {
+  const ym = `${year}-${String(month).padStart(2,'0')}`;
+  // 해당 월의 첫번째 섹션 찾기
+  const sections = document.querySelectorAll('.date-section[data-month]');
+  let target = null;
+  for (const s of sections) {
+    if (s.dataset.month === ym) { target = s; break; }
+  }
+  if (target) {
+    // 필터바 높이만큼 오프셋
+    const gnb = document.querySelector('.gnb');
+    const fsk = document.querySelector('.filter-sticky');
+    const off = (gnb?.offsetHeight || 0) + (fsk?.offsetHeight || 0) + 12;
+    const top = target.getBoundingClientRect().top + window.pageYOffset - off;
+    window.scrollTo({ top, behavior: 'smooth' });
+  } else {
+    // 해당 월 데이터 없으면 가장 가까운 섹션 찾기
+    let closest = null, minDiff = Infinity;
+    for (const s of sections) {
+      if (!s.dataset.date) continue;
+      const [sy, sm] = s.dataset.month.split('-').map(Number);
+      const diff = Math.abs((sy - year) * 12 + (sm - month));
+      if (diff < minDiff) { minDiff = diff; closest = s; }
+    }
+    if (closest) {
+      const gnb = document.querySelector('.gnb');
+      const fsk = document.querySelector('.filter-sticky');
+      const off = (gnb?.offsetHeight || 0) + (fsk?.offsetHeight || 0) + 12;
+      const top = closest.getBoundingClientRect().top + window.pageYOffset - off;
+      window.scrollTo({ top, behavior: 'smooth' });
+      // 안내 토스트 (간단히 console + 알림 생략)
+      console.info(`${year}년 ${month}월 데이터 없음 — 가장 가까운 ${closest.dataset.date}로 이동`);
+    } else {
+      alert(`${year}년 ${month}월 데이터가 없습니다.`);
+    }
+  }
+}
+
+// 초기화
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', mnavInit);
+} else {
+  mnavInit();
+}
 </script>
 
 <!-- ════ DETAIL SLIDE PANEL ════ -->
