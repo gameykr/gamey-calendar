@@ -2522,13 +2522,37 @@ function initGoogleAuth() {
   // 저장된 사용자 복원
   try {
     const saved = JSON.parse(localStorage.getItem('gamey_user') || 'null');
-    if (saved) { currentUser = saved; updateUserUI(); }
+    if (saved) {
+      // Mojibake 감지 (Ã Â ì í ë 같은 Latin-1 해석된 UTF-8 흔적)
+      const mojibakePattern = /[ÃÂìíîïðñòóôõöøùúûü]{2,}/;
+      if (mojibakePattern.test(saved.name || '') || mojibakePattern.test(saved.googleName || '')) {
+        console.warn('[auth] 깨진 이름 감지 → 저장된 로그인 정보 초기화');
+        localStorage.removeItem('gamey_user');
+        localStorage.removeItem('gamey_display_name');
+      } else {
+        currentUser = saved;
+        updateUserUI();
+      }
+    }
   } catch(e) {}
 }
 
 function onGoogleSignIn(response) {
-  // JWT decode (base64)
-  const payload = JSON.parse(atob(response.credential.split('.')[1]));
+  // JWT decode (base64 + UTF-8)
+  const b64 = response.credential.split('.')[1];
+  let payload;
+  try {
+    // base64url → base64 → UTF-8 바이트 → 문자열
+    const b64std = b64.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = b64std + '==='.slice((b64std.length + 3) % 4);
+    const bin = atob(padded);
+    const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+    const json = new TextDecoder('utf-8').decode(bytes);
+    payload = JSON.parse(json);
+  } catch(e) {
+    console.error('[auth] JWT 디코드 실패:', e);
+    return;
+  }
   const savedName = localStorage.getItem('gamey_display_name');
   currentUser = {
     name: savedName || payload.name,
@@ -2975,17 +2999,22 @@ function mnavUpdateBtnLabel() {
 }
 
 function toggleMnav(ev) {
-  if (ev) ev.stopPropagation();
+  if (ev) { ev.preventDefault(); ev.stopPropagation(); }
   const pop = document.getElementById('mnavPopup');
   const btn = document.getElementById('mnavBtn');
+  if (!pop || !btn) { console.warn('[mnav] 요소 없음'); return; }
   const isOpen = pop.classList.contains('open');
+  console.log('[mnav] 토글 전 상태:', isOpen ? '열림' : '닫힘');
   if (isOpen) {
     mnavClose();
   } else {
+    // 다른 드롭다운들 닫기
+    document.querySelectorAll('.user-menu.open').forEach(el => el.classList.remove('open'));
     mnavPositionPopup();
     pop.classList.add('open');
     btn.classList.add('active');
     btn.setAttribute('aria-expanded', 'true');
+    console.log('[mnav] 팝업 열림, 위치:', pop.style.top, pop.style.left);
   }
 }
 
