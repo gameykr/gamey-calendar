@@ -1783,64 +1783,82 @@ function parseEvent(item, cat) {
   let featured = false;
   let imageUrl = '';
   let tier = '';
+  let youtubeUrl = '';
+
+  // description 전처리: 번호 매김/줄바꿈으로 깨진 키:값 복구
+  //  (A) "1.\n스팀: ..." → "1. 스팀: ..."  (번호만 남은 줄과 다음 줄 병합)
+  //  (B) "9. 공식\n링크: ..." → "9. 공식 링크: ..."  (키가 줄바꿈으로 끊긴 경우)
+  const preDesc = (txt) => (txt || '')
+    .replace(/(^|\n)(\d+\.)\s*\n\s*/g, '$1$2 ')
+    .replace(/([가-힣A-Za-z]{1,8})\n\s*(링크|사이트|스토어)\s*[：:]/g, '$1 $2:');
+
+  // 키 정규화: 번호 prefix(1., 10. 등)와 불릿/공백 제거 후 소문자화
+  const normKey = (s) => (s || '')
+    .trim()
+    .replace(/^[\s•\-\*·▪▸►○●◆◇☆★]+/, '')
+    .replace(/^\d+\.?\s*/, '')
+    .toLowerCase()
+    .replace(/\s/g, '');
+
   if (item.description) {
     const raw = item.description;
-    const clean = stripHtml(raw);
+    const clean = preDesc(stripHtml(raw));
 
     // 키:값 라인 파싱
     for (const line of clean.split('\n')) {
-      const m = line.match(/^([^:：]{1,20})[：:]\s*(.+)/);
+      const m = line.match(/^([^:：]{1,24})[：:]\s*(.+)/);
       if (!m) continue;
-      const key = m[1].trim().replace(/^[\s•\-\*\·\▪\▸\►\○\●\◆\◇\☆\★]+/, '').toLowerCase().replace(/\s/g,'');
+      const key = normKey(m[1]);
       const val = m[2].trim();
-      if (/^플랫폼$|^platform$/.test(key) && val) {
+      if (/^(플랫폼|platform|기종)$/.test(key) && val) {
         const dp = parsePlats(val);
         if (dp.length) plat = [...new Set([...plat, ...dp])];
       }
-      if (/^분류$|^장르$|^genre$|^category$/.test(key) && val && !classify) classify = val;
-      if (/^비고$|^memo$|^note$/.test(key) && val && !classify) classify = val;
-      if (/^추천$|^hot$|^best$|^featured$|^pick$/.test(key)) {
+      if (/^(분류|장르|genre|category)$/.test(key) && val && !classify) classify = val;
+      if (/^(비고|memo|note)$/.test(key) && val && !classify) classify = val;
+      if (/^(추천|hot|best|featured|pick)$/.test(key)) {
         featured = /^(y|yes|true|1|o)$/i.test(val.toLowerCase());
-        if (featured && !tier) tier = 'S'; // 추천:Y → S등급으로 통합
+        if (featured && !tier) tier = 'S';
       }
-      if (/^이미지$|^image$|^img$|^thumbnail$|^썸네일$/.test(key) && val) imageUrl = val;
-      if (/^등급$|^티어$|^tier$|^grade$|^rank$/.test(key) && val) tier = val.toUpperCase().replace(/\s/g,'').slice(0,2);
+      if (/^(이미지|image|img|thumbnail|썸네일)$/.test(key) && val) imageUrl = val;
+      if (/^(등급|티어|tier|grade|rank|주요도)$/.test(key) && val) tier = val.toUpperCase().replace(/\s/g,'').slice(0,2);
+      if (/^(유튜브|youtube|유튜브링크|ytlink|youtubelink)$/.test(key) && val) youtubeUrl = val;
     }
 
     // 폴백: 키 파싱 실패 시 description에서 이미지 URL 직접 추출
     if (!imageUrl) {
-      // href 속성에서 이미지 URL 추출 (Google Calendar는 링크를 <a href="">로 감쌈)
       const hrefMatch = raw.match(/href=["']([^"']*\.(?:jpg|jpeg|png|gif|webp|JPG|PNG|JPEG)[^"']*?)["']/);
       if (hrefMatch) imageUrl = hrefMatch[1];
     }
     if (!imageUrl) {
-      // plain URL에서 이미지 확장자 추출
       const urlMatch = clean.match(/https?:\/\/[^\s"'<>]+\.(?:jpg|jpeg|png|gif|webp)(?:[?#][^\s"'<>]*)?/i);
       if (urlMatch) imageUrl = urlMatch[0];
     }
   }
 
-  // 개발사/퍼블리셔/스토어 파싱
+  // 개발사/퍼블리셔/스토어 파싱 — 값이 "-"나 빈 값이면 무시
   let developer = '', publisher = '', storeLinks = {};
   if (item.description) {
-    const clean2 = stripHtml(item.description);
+    const clean2 = preDesc(stripHtml(item.description));
     for (const line of clean2.split('\n')) {
-      const m2 = line.match(/^([^:：]{1,20})[：:]\s*(.+)/);
+      const m2 = line.match(/^([^:：]{1,24})[：:]\s*(.+)/);
       if (!m2) continue;
-      const k = m2[1].trim().replace(/^[\s•\-\*\·\▪\▸\►\○\●\◆\◇]+/, '').toLowerCase().replace(/\s/g,'');
+      const k = normKey(m2[1]);
       const v = m2[2].trim();
-      if (/^개발사$|^developer$|^dev$/.test(k)) developer = v;
-      if (/^퍼블리셔$|^publisher$|^pub$/.test(k)) publisher = v;
-      if (/^steam$|^스팀$/.test(k)) storeLinks.steam = v;
-      if (/^playstation$|^ps$|^psstore$/.test(k)) storeLinks.ps = v;
-      if (/^xbox$|^xb$|^xboxstore$/.test(k)) storeLinks.xbox = v;
-      if (/^nintendo$|^ns$|^eshop$|^닌텐도$/.test(k)) storeLinks.nintendo = v;
-      if (/^공식사이트$|^official$|^website$|^홈페이지$/.test(k)) storeLinks.official = v;
-      if (/^appstore$|^앱스토어$|^ios$/.test(k)) storeLinks.appstore = v;
-      if (/^googleplay$|^구글플레이$|^aos$|^android$/.test(k)) storeLinks.googleplay = v;
+      // 빈 값 / 하이픈 / 물음표 → 무시 (미정 표기)
+      if (!v || /^[-–—?]+$/.test(v)) continue;
+      if (/^(개발사|developer|dev)$/.test(k)) developer = v;
+      if (/^(퍼블리셔|publisher|pub|유통사)$/.test(k)) publisher = v;
+      if (/^(steam|스팀|스팀스토어)$/.test(k)) storeLinks.steam = v;
+      if (/^(playstation|ps|psstore|플레이스테이션|플레이스테이션스토어)$/.test(k)) storeLinks.ps = v;
+      if (/^(xbox|xb|xboxstore|엑스박스|엑스박스스토어)$/.test(k)) storeLinks.xbox = v;
+      if (/^(nintendo|ns|eshop|닌텐도|닌텐도스토어)$/.test(k)) storeLinks.nintendo = v;
+      if (/^(공식사이트|official|website|홈페이지|공식|공식링크)$/.test(k)) storeLinks.official = v;
+      if (/^(appstore|앱스토어|ios|애플|애플스토어)$/.test(k)) storeLinks.appstore = v;
+      if (/^(googleplay|구글플레이|aos|android|구글|구글스토어)$/.test(k)) storeLinks.googleplay = v;
     }
   }
-  return { date: dateStr, endDate: endStr, cat, title, plat, classify, featured, imageUrl, tier, developer, publisher, storeLinks, raw: item };
+  return { date: dateStr, endDate: endStr, cat, title, plat, classify, featured, imageUrl, tier, developer, publisher, storeLinks, youtubeUrl, raw: item };
 }
 
 /* ════════════════════════════════════
@@ -2461,30 +2479,59 @@ function openDetail(evOrIdx) {
   const dateLabel = ev.endDate ? `${ev.date} ~ ${ev.endDate}` : ev.date;
   const platHtml = ev.plat.length ? makePlatHtml(ev.plat, 16) : '<span style="color:var(--gray-400)">—</span>';
 
-  // description 원본 정제
-  const rawDesc = ev.raw?.description ? stripHtml(ev.raw.description) : '';
-  // 키:값 형태 라인 필터링 (분류:, 추천:, 이미지: 등 제거)
-  // 100자설명 키 값 추출
-  // 메타 키 목록 (제거 대상)
-  const META_KEYS = /^(분류|장르|genre|category|플랫폼|platform|추천|hot|best|featured|pick|이미지|image|img|thumbnail|비고|note|memo|공식사이트|official|website|홈페이지|steam|스팀|playstation|ps|xbox|xb|nintendo|ns|eshop|닌텐도|appstore|앱스토어|ios|googleplay|구글플레이|aos|android|개발사|developer|dev|퍼블리셔|publisher|pub|등급|티어|tier|grade|rank|유튜브|youtube|100자설명|100자소개|소개|출시일|링크|steam|공식)$/;
+  // description 원본 정제 — parseEvent와 동일 원칙으로 정규화
+  //  (A) "1.\n스팀: ..." 같이 번호 줄과 다음 줄 분리된 경우 병합
+  //  (B) "9. 공식\n링크: ..." 처럼 키가 줄바꿈된 경우 병합
+  const preDescPanel = (txt) => (txt || '')
+    .replace(/(^|\n)(\d+\.)\s*\n\s*/g, '$1$2 ')
+    .replace(/([가-힣A-Za-z]{1,8})\n\s*(링크|사이트|스토어)\s*[：:]/g, '$1 $2:');
+
+  const rawDesc = ev.raw?.description ? preDescPanel(stripHtml(ev.raw.description)) : '';
+
+  // 메타 키 목록 (descLines에서 제거할 키들) — 번호 prefix 제거 후 매칭
+  const META_KEYS = /^(게임명|name|title|분류|장르|genre|category|플랫폼|platform|기종|추천|hot|best|featured|pick|이미지|image|img|thumbnail|썸네일|비고|note|memo|공식사이트|공식|공식링크|official|website|홈페이지|steam|스팀|스팀스토어|playstation|ps|psstore|플레이스테이션|플레이스테이션스토어|xbox|xb|xboxstore|엑스박스|엑스박스스토어|nintendo|ns|eshop|닌텐도|닌텐도스토어|appstore|앱스토어|ios|애플|애플스토어|googleplay|구글플레이|aos|android|구글|구글스토어|개발사|developer|dev|퍼블리셔|publisher|pub|유통사|등급|티어|tier|grade|rank|주요도|유튜브|youtube|유튜브링크|ytlink|youtubelink|출시일|링크)$/;
+
+  // 100자 설명 키 (별도 추출)
+  const DESC_KEYS = /^(100자설명|100자소개|소개|설명|description|desc)$/;
+
+  // 섹션 헤더 패턴 제거 (예: "[스토어 링크]", "■ 링크", "===기본===")
+  const SECTION_HEADER = /^[\[【]?[ \-=■◆◇●○▶▸►\*]*(스토어|링크|플랫폼|기본|정보|소개|출시)[\s\w가-힣]{0,12}[\]】]?$/;
 
   let desc100 = '';
   const descLines = [];
 
   rawDesc.split('\n').forEach(line => {
-    const bare = line.replace(/^[\s•\-\*·▪▸►○●◆◇]+/, '').trim();
+    // 선행 불릿/공백/번호 prefix 정제
+    let bare = line.replace(/^[\s•\-\*·▪▸►○●◆◇]+/, '').trim();
     if (!bare) return;
     // 순수 URL 라인 제거
     if (/^https?:\/\/\S+$/.test(bare)) return;
-    // 키:값 분리
-    const km = bare.match(/^([^:：]{1,15})[：:]\s*(.*)$/);
+    // 섹션 헤더 제거
+    if (SECTION_HEADER.test(bare)) return;
+    // "1.", "10." 같은 번호만 있는 라인 제거
+    if (/^\d+\.\s*$/.test(bare)) return;
+
+    // 키:값 분리 (번호 prefix도 키에서 함께 벗겨냄)
+    const km = bare.match(/^([^:：]{1,24})[：:]\s*(.*)$/);
     if (km) {
-      const key = km[1].trim().toLowerCase().replace(/\s/g, '');
+      const key = km[1]
+        .trim()
+        .replace(/^[\s•\-\*·▪▸►○●◆◇☆★]+/, '')
+        .replace(/^\d+\.?\s*/, '')
+        .toLowerCase()
+        .replace(/\s/g, '');
       const val = km[2].trim();
-      // 100자설명 키 추출
-      if (/^(100자설명|100자소개|소개)$/.test(key) && val) { desc100 = val; return; }
-      // 메타 키 제거
+      // 빈 값 / "-" / "?" 같은 미정 표기는 라인 자체를 무시 (파란 박스 오염 방지)
+      if (!val || /^[-–—?]+$/.test(val)) return;
+      // 100자 설명 추출
+      if (DESC_KEYS.test(key) && val) { desc100 = val; return; }
+      // 메타 키는 박스에서 제거
       if (META_KEYS.test(key)) return;
+      // 인식 안 된 키:값이지만 번호로 시작했던 라인이면 메타성으로 보고 제외
+      if (/^\d+\.?\s/.test(bare)) return;
+    } else {
+      // 콜론 없고 "1.", "1. 엘리스..." 같이 번호로 시작하는 라인은 메타/제목 흔적 → 제외
+      if (/^\d+\.?\s/.test(bare)) return;
     }
     // 남은 라인 = 일반 설명 텍스트
     descLines.push(bare);
@@ -2504,9 +2551,10 @@ function openDetail(evOrIdx) {
   // Google Calendar 링크
   const gcalUrl = ev.raw?.htmlLink || '';
 
-  // YouTube URL 추출 (description 또는 별도 필드)
+  // YouTube URL 추출 — parseEvent가 추출한 ev.youtubeUrl 우선, 없으면 description 원문에서 스캔
   const rawDescFull = ev.raw?.description ? stripHtml(ev.raw.description) : '';
-  const ytMatch = rawDescFull.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+  const ytSource = ev.youtubeUrl || rawDescFull;
+  const ytMatch = ytSource.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
   const ytVideoId = ytMatch ? ytMatch[1] : null;
 
   // YouTube 임베드 HTML
