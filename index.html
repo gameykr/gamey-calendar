@@ -392,6 +392,8 @@ body { font-family: 'Noto Sans KR', sans-serif; background: var(--gray-50); colo
   margin-bottom: 14px; display: flex; align-items: center; gap: 6px;
 }
 .widget-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); }
+/* 이미지 로드 실패 시 부모가 fallback 배경을 그대로 노출 */
+.img-failed { position: relative; }
 .side-count { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--event); background: #e8f2fb; padding: 2px 8px; border-radius: 10px; }
 .widget-title { position: relative; }
 
@@ -1760,6 +1762,36 @@ img {
 
 <script>
 
+/* ════ 이미지 로드 실패 폴백 ════
+   - YouTube 썸네일: maxresdefault → hqdefault → mqdefault → 숨김
+   - 그 외: 즉시 숨김
+   주의: 모든 <img>에 referrerpolicy="no-referrer"도 함께 추가해야 hotlink 차단 우회 가능 */
+window.imgFallback = function(img) {
+  try {
+    var src = img.getAttribute('src') || '';
+    if (src.indexOf('img.youtube.com') !== -1) {
+      if (src.indexOf('maxresdefault') !== -1) {
+        img.src = src.replace('maxresdefault', 'hqdefault');
+        return;
+      }
+      if (src.indexOf('hqdefault') !== -1) {
+        img.src = src.replace('hqdefault', 'mqdefault');
+        return;
+      }
+      if (src.indexOf('mqdefault') !== -1) {
+        img.src = src.replace('mqdefault', 'default');
+        return;
+      }
+    }
+    // 최종 폴백: 숨김
+    img.style.display = 'none';
+    // 부모 컨테이너에 fallback 표시용 클래스 추가 (CSS 그라디언트로 대체)
+    if (img.parentElement) img.parentElement.classList.add('img-failed');
+  } catch(e) {
+    img.style.display = 'none';
+  }
+};
+
 /* ════ 플랫폼 아이콘 ════ */
 const PLAT_SVG = {
   PC:  `<img src="data:image/png;base64,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"  style="width:16px;height:16px;display:inline-block;vertical-align:middle;border-radius:2px" alt="PC">`,
@@ -1915,7 +1947,7 @@ function parseEvent(item, cat) {
   //  (C) 같은 줄에 여러 키가 붙어있는 경우 — 알려진 키 앞에 개행 삽입
   //      예: "스팀: URL플레이스테이션 스토어: URL" → "스팀: URL\n플레이스테이션 스토어: URL"
   //      예: "프래그마타 (PRAGMATA)출시일: 2026년" → "프래그마타 (PRAGMATA)\n출시일: 2026년"
-  const KEY_SPLIT_RE = /(?!^)(?<![\n：: \-•])(?=(?:출시일|개발사|퍼블리셔|유통사|장르|분류|등급|티어|주요도|추천|이미지|썸네일|플랫폼|기종|100자\s*설명|100자\s*소개|소개|설명|공식\s*사이트|공식\s*링크|공식|홈페이지|유튜브\s*링크|유튜브|스팀|스팀\s*스토어|플레이스테이션|플레이스테이션\s*스토어|엑스박스|엑스박스\s*스토어|닌텐도|닌텐도\s*스토어|구글\s*스토어|구글\s*플레이|애플\s*스토어|앱\s*스토어|appstore|googleplay|official|website)\s*[：:])/g;
+  const KEY_SPLIT_RE = /(?!^)(?<![\n：: \-•])(?=(?:출시일|개발사|퍼블리셔|유통사|장르|분류|등급|티어|주요도|추천|이미지|썸네일|플랫폼|기종|100자\s*설명|100자\s*소개|소개|설명|공식\s*사이트|공식\s*링크|공식|홈페이지|유튜브\s*링크|유튜브|스팀|스팀\s*스토어|플레이스테이션|플레이스테이션\s*스토어|엑스박스|엑스박스\s*스토어|닌텐도|닌텐도\s*스토어|구글\s*플레이\s*스토어|구글\s*스토어|구글\s*플레이|플레이\s*스토어|안드로이드|애플\s*스토어|앱\s*스토어|아이폰|아이패드|appstore|googleplay|official|website)\s*[：:])/g;
   const preDesc = (txt) => (txt || '')
     .replace(/(^|\n)(\d+\.)\s*\n\s*/g, '$1$2 ')
     .replace(/([가-힣A-Za-z]{1,8})\n\s*(링크|사이트|스토어)\s*[：:]/g, '$1 $2:')
@@ -1985,8 +2017,8 @@ function parseEvent(item, cat) {
       if (/^(xbox|xb|xboxstore|엑스박스|엑스박스스토어)$/.test(k)) storeLinks.xbox = v;
       if (/^(nintendo|ns|eshop|닌텐도|닌텐도스토어)$/.test(k)) storeLinks.nintendo = v;
       if (/^(공식사이트|official|website|홈페이지|공식|공식링크)$/.test(k)) storeLinks.official = v;
-      if (/^(appstore|앱스토어|ios|애플|애플스토어)$/.test(k)) storeLinks.appstore = v;
-      if (/^(googleplay|구글플레이|aos|android|구글|구글스토어)$/.test(k)) storeLinks.googleplay = v;
+      if (/^(appstore|앱스토어|ios|애플|애플스토어|아이폰|아이패드|iphone|ipad)$/.test(k)) storeLinks.appstore = v;
+      if (/^(googleplay|구글플레이|aos|android|구글|구글스토어|구글플레이스토어|플레이스토어|안드로이드)$/.test(k)) storeLinks.googleplay = v;
     }
   }
   return { date: dateStr, endDate: endStr, cat, title, plat, classify, featured, imageUrl, tier, developer, publisher, storeLinks, youtubeUrl, raw: item };
@@ -2103,7 +2135,7 @@ function renderOngoing(items) {
     sideBox.innerHTML = items.map(ev => {
       const idx = eventStore.indexOf(ev) !== -1 ? eventStore.indexOf(ev) : (() => { eventStore.push(ev); return eventStore.length - 1; })();
       const period = ev.endDate ? (ev.date.slice(5) + '~' + ev.endDate.slice(5)) : ev.date.slice(5);
-      const img = ev.imageUrl ? '<img src="' + ev.imageUrl + '" onerror="this.style.display=\'none\'" alt="" loading="lazy">' : '';
+      const img = ev.imageUrl ? '<img src="' + ev.imageUrl + '" referrerpolicy="no-referrer" onerror="imgFallback(this)" alt="" loading="lazy">' : '';
       return '<div class="side-ongoing-item" onclick="openDetail(' + idx + ')">'
         + '<div class="side-ongoing-thumb">' + img + '</div>'
         + '<div class="side-ongoing-body">'
@@ -2121,7 +2153,7 @@ function renderOngoing(items) {
     mobTrack.innerHTML = items.map(ev => {
       const idx = eventStore.indexOf(ev) !== -1 ? eventStore.indexOf(ev) : (() => { eventStore.push(ev); return eventStore.length - 1; })();
       const period = ev.endDate ? (ev.date.slice(5) + ' ~ ' + ev.endDate.slice(5)) : ev.date.slice(5);
-      const img = ev.imageUrl ? '<img src="' + ev.imageUrl + '" onerror="this.style.display=\'none\'" alt="" loading="lazy">' : '';
+      const img = ev.imageUrl ? '<img src="' + ev.imageUrl + '" referrerpolicy="no-referrer" onerror="imgFallback(this)" alt="" loading="lazy">' : '';
       return '<div class="mobile-ongoing-card" onclick="openDetail(' + idx + ')">'
         + '<div class="mobile-ongoing-card-thumb">' + img + '<span class="mobile-ongoing-card-live">LIVE</span></div>'
         + '<div class="mobile-ongoing-card-body">'
@@ -2149,7 +2181,7 @@ function renderYPick(picks) {
     const dateLabel = ev.endDate ? `${ev.date} ~ ${ev.endDate}` : ev.date;
     const thumbStyle = getThumbGradient(ev.cat);
     const imgTag = ev.imageUrl
-      ? `<img src="${ev.imageUrl}" onerror="this.style.display='none'" alt="" loading="lazy" decoding="async" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:1;">`
+      ? `<img src="${ev.imageUrl}" referrerpolicy="no-referrer" onerror="imgFallback(this)" alt="" loading="lazy" decoding="async" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:1;">`
       : '';
     return `
     <div class="ypick-card" onclick="openDetail(${ypickIdx})" style="cursor:pointer">
@@ -2176,7 +2208,7 @@ function renderEventBanners(evItems) {
     const dateLabel = ev.endDate ? `${ev.date} ~ ${ev.endDate}` : ev.date;
     const platLabel = ev.plat.join(' · ') || '';
     const imgHtml = ev.imageUrl
-      ? `<img src="${ev.imageUrl}" onerror="this.style.display='none'" alt=""
+      ? `<img src="${ev.imageUrl}" referrerpolicy="no-referrer" onerror="imgFallback(this)" alt=""
              loading="lazy" decoding="async"
              style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;">`
       : '';
@@ -2276,7 +2308,7 @@ function renderCard(ev) {
   const dateLabel = ev.endDate ? `${ev.date} ~ ${ev.endDate}` : ev.date;
   const classifyBadge = ev.classify ? `<span class="badge badge-genre">${ev.classify}</span>` : '';
   const imgHtml = ev.imageUrl
-    ? `<img src="${ev.imageUrl}" onerror="this.style.display='none'" alt=""
+    ? `<img src="${ev.imageUrl}" referrerpolicy="no-referrer" onerror="imgFallback(this)" alt=""
            loading="lazy" decoding="async"
            style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;">`
     : '';
@@ -2687,13 +2719,23 @@ function openDetail(evOrIdx) {
   label.textContent = ev.cat;
 
   const dateLabel = ev.endDate ? `${ev.date} ~ ${ev.endDate}` : ev.date;
-  const platHtml = ev.plat.length ? makePlatHtml(ev.plat, 16) : '<span style="color:var(--gray-400)">—</span>';
+  // 세부 페이지 전용 플랫폼 아이콘 — 배경박스 없이 메인 필터와 동일한 순수 PNG 로고
+  const platHtml = ev.plat.length
+    ? ev.plat.map(p => {
+        const src = PLAT_SVG[p] || PLAT_SVG['etc'] || '';
+        if (!src) return '';
+        // PLAT_SVG는 <img src="..." style="width:16px..."> 형태. 사이즈 22로 바꿔 그대로 사용.
+        return src
+          .replace(/width:\d+px;height:\d+px/g, 'width:22px;height:22px')
+          .replace(/border-radius:\d+px/g, 'border-radius:4px');
+      }).join('<span style="display:inline-block;width:8px"></span>')
+    : '<span style="color:var(--gray-400)">—</span>';
 
   // description 원본 정제 — parseEvent와 동일 원칙으로 정규화
   //  (A) "1.\n스팀: ..." 병합
   //  (B) "9. 공식\n링크: ..." 병합
   //  (C) 같은 줄에 여러 키가 붙어있는 경우(예: "스팀: URL플레이스테이션 스토어: URL") 키 앞에 개행 삽입
-  const KEY_SPLIT_RE_PANEL = /(?!^)(?<![\n：: \-•])(?=(?:출시일|개발사|퍼블리셔|유통사|장르|분류|등급|티어|주요도|추천|이미지|썸네일|플랫폼|기종|100자\s*설명|100자\s*소개|소개|설명|공식\s*사이트|공식\s*링크|공식|홈페이지|유튜브\s*링크|유튜브|스팀|스팀\s*스토어|플레이스테이션|플레이스테이션\s*스토어|엑스박스|엑스박스\s*스토어|닌텐도|닌텐도\s*스토어|구글\s*스토어|구글\s*플레이|애플\s*스토어|앱\s*스토어|appstore|googleplay|official|website)\s*[：:])/g;
+  const KEY_SPLIT_RE_PANEL = /(?!^)(?<![\n：: \-•])(?=(?:출시일|개발사|퍼블리셔|유통사|장르|분류|등급|티어|주요도|추천|이미지|썸네일|플랫폼|기종|100자\s*설명|100자\s*소개|소개|설명|공식\s*사이트|공식\s*링크|공식|홈페이지|유튜브\s*링크|유튜브|스팀|스팀\s*스토어|플레이스테이션|플레이스테이션\s*스토어|엑스박스|엑스박스\s*스토어|닌텐도|닌텐도\s*스토어|구글\s*플레이\s*스토어|구글\s*스토어|구글\s*플레이|플레이\s*스토어|안드로이드|애플\s*스토어|앱\s*스토어|아이폰|아이패드|appstore|googleplay|official|website)\s*[：:])/g;
   const preDescPanel = (txt) => (txt || '')
     .replace(/(^|\n)(\d+\.)\s*\n\s*/g, '$1$2 ')
     .replace(/([가-힣A-Za-z]{1,8})\n\s*(링크|사이트|스토어)\s*[：:]/g, '$1 $2:')
@@ -2702,7 +2744,7 @@ function openDetail(evOrIdx) {
   const rawDesc = ev.raw?.description ? preDescPanel(stripHtml(ev.raw.description)) : '';
 
   // 메타 키 목록 (descLines에서 제거할 키들) — 번호 prefix 제거 후 매칭
-  const META_KEYS = /^(게임명|name|title|분류|장르|genre|category|플랫폼|platform|기종|추천|hot|best|featured|pick|이미지|image|img|thumbnail|썸네일|비고|note|memo|공식사이트|공식|공식링크|official|website|홈페이지|steam|스팀|스팀스토어|playstation|ps|psstore|플레이스테이션|플레이스테이션스토어|xbox|xb|xboxstore|엑스박스|엑스박스스토어|nintendo|ns|eshop|닌텐도|닌텐도스토어|appstore|앱스토어|ios|애플|애플스토어|googleplay|구글플레이|aos|android|구글|구글스토어|개발사|developer|dev|퍼블리셔|publisher|pub|유통사|등급|티어|tier|grade|rank|주요도|유튜브|youtube|유튜브링크|ytlink|youtubelink|출시일|링크)$/;
+  const META_KEYS = /^(게임명|name|title|분류|장르|genre|category|플랫폼|platform|기종|추천|hot|best|featured|pick|이미지|image|img|thumbnail|썸네일|비고|note|memo|공식사이트|공식|공식링크|official|website|홈페이지|steam|스팀|스팀스토어|playstation|ps|psstore|플레이스테이션|플레이스테이션스토어|xbox|xb|xboxstore|엑스박스|엑스박스스토어|nintendo|ns|eshop|닌텐도|닌텐도스토어|appstore|앱스토어|ios|애플|애플스토어|아이폰|아이패드|iphone|ipad|googleplay|구글플레이|aos|android|구글|구글스토어|구글플레이스토어|플레이스토어|안드로이드|개발사|developer|dev|퍼블리셔|publisher|pub|유통사|등급|티어|tier|grade|rank|주요도|유튜브|youtube|유튜브링크|ytlink|youtubelink|출시일|링크)$/;
 
   // 100자 설명 키 (별도 추출)
   const DESC_KEYS = /^(100자설명|100자소개|소개|설명|description|desc)$/;
@@ -2755,7 +2797,7 @@ function openDetail(evOrIdx) {
 
   const heroStyle = getThumbGradient(ev.cat);
   const imgTag = ev.imageUrl
-    ? `<img src="${ev.imageUrl}" onerror="this.style.display='none'" alt="" loading="lazy" decoding="async" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;">`
+    ? `<img src="${ev.imageUrl}" referrerpolicy="no-referrer" onerror="imgFallback(this)" alt="" loading="lazy" decoding="async" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;">`
     : '';
   const yBadge = (ev.tier && ev.tier.charAt(0) === 'S') ? `<span class="panel-y-badge">🔥 GAMEY PICK</span>` : '';
   // S등급은 GAMEY PICK 배지로 대체, 나머지만 등급 배지 표시
@@ -2774,7 +2816,7 @@ function openDetail(evOrIdx) {
   // YouTube 임베드 HTML
   const ytHtml = ytVideoId ? `
     <div class="youtube-thumb" id="ytThumb_${ytVideoId}" onclick="playYoutube('${ytVideoId}')">
-      <img src="https://img.youtube.com/vi/${ytVideoId}/mqdefault.jpg" alt="YouTube thumbnail">
+      <img src="https://img.youtube.com/vi/${ytVideoId}/maxresdefault.jpg" referrerpolicy="no-referrer" onerror="imgFallback(this)" alt="YouTube thumbnail">
       <div class="youtube-play">
         <div class="youtube-play-btn">
           <svg viewBox="0 0 24 24" fill="white" style="width:24px;height:24px;margin-left:3px"><polygon points="5,3 19,12 5,21"/></svg>
@@ -3634,7 +3676,21 @@ function mnavGo() {
     history.replaceState(null, '', url.toString());
   } catch(e) { /* noop */ }
   mnavClose();
-  mnavScrollToMonth(mnavSelectedYear, mnavSelectedMonth);
+
+  // viewYear/viewMonth가 바뀌면 해당 월 데이터 새로 fetch
+  if (mnavSelectedYear !== viewYear || mnavSelectedMonth !== viewMonth) {
+    viewYear = mnavSelectedYear;
+    viewMonth = mnavSelectedMonth;
+    eventStore.length = 0;
+    if (typeof loadData === 'function') {
+      loadData().then(() => {
+        // 데이터 로드 후 해당 월로 스크롤
+        setTimeout(() => mnavScrollToMonth(mnavSelectedYear, mnavSelectedMonth), 150);
+      });
+    }
+  } else {
+    mnavScrollToMonth(mnavSelectedYear, mnavSelectedMonth);
+  }
 }
 
 function mnavScrollToMonth(year, month) {
