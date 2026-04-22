@@ -392,6 +392,96 @@ body { font-family: 'Noto Sans KR', sans-serif; background: var(--gray-50); colo
   margin-bottom: 14px; display: flex; align-items: center; gap: 6px;
 }
 .widget-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); }
+.side-count { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--event); background: #e8f2fb; padding: 2px 8px; border-radius: 10px; }
+.widget-title { position: relative; }
+
+/* 사이드바 진행중 아이템 */
+.side-ongoing-item {
+  display: flex; gap: 10px; padding: 10px 0;
+  border-bottom: 1px dashed var(--gray-200);
+  cursor: pointer; transition: opacity .15s;
+}
+.side-ongoing-item:last-child { border-bottom: none; }
+.side-ongoing-item:hover { opacity: .8; }
+.side-ongoing-thumb {
+  width: 48px; height: 48px; border-radius: 8px;
+  overflow: hidden; flex-shrink: 0; position: relative;
+  background: linear-gradient(135deg, #1B2838, #2a475e);
+}
+.side-ongoing-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.side-ongoing-body { flex: 1; min-width: 0; }
+.side-ongoing-title {
+  font-size: 13px; font-weight: 700; color: var(--gray-900);
+  line-height: 1.3; margin-bottom: 3px;
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+.side-ongoing-period { font-size: 11px; color: var(--gray-400); font-weight: 600; }
+.side-ongoing-live {
+  display: inline-block; font-size: 10px; font-weight: 800;
+  color: white; background: var(--event);
+  padding: 2px 7px; border-radius: 8px; margin-top: 3px;
+}
+
+/* 모바일 전용 진행중 가로 캐러셀 */
+.mobile-ongoing-strip {
+  display: none;
+  margin: 0 -16px 16px;
+  padding: 12px 16px;
+  background: linear-gradient(90deg, rgba(27,108,178,.04), rgba(27,108,178,.01));
+  border-top: 1px solid rgba(27,108,178,.12);
+  border-bottom: 1px solid rgba(27,108,178,.12);
+}
+.mobile-ongoing-strip.visible { display: block; }
+.mobile-ongoing-head {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 800; color: var(--event);
+  margin-bottom: 10px;
+  letter-spacing: 0.3px;
+}
+.mobile-ongoing-head::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--event); animation: pulse-dot 1.5s infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .3; }
+}
+.mobile-ongoing-track {
+  display: flex; gap: 10px; overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.mobile-ongoing-track::-webkit-scrollbar { display: none; }
+.mobile-ongoing-card {
+  flex: 0 0 auto; width: 220px;
+  background: white; border: 1px solid var(--gray-200);
+  border-radius: 12px; overflow: hidden;
+  cursor: pointer; scroll-snap-align: start;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+.mobile-ongoing-card-thumb {
+  width: 100%; height: 90px; position: relative;
+  background: linear-gradient(135deg, #1B2838, #2a475e);
+}
+.mobile-ongoing-card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.mobile-ongoing-card-live {
+  position: absolute; top: 6px; right: 6px;
+  font-size: 9px; font-weight: 900; color: white;
+  background: var(--event); padding: 2px 7px; border-radius: 8px;
+}
+.mobile-ongoing-card-body { padding: 10px 12px; }
+.mobile-ongoing-card-title {
+  font-size: 13px; font-weight: 700; color: var(--gray-900);
+  line-height: 1.3; margin-bottom: 3px;
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  height: 34px;
+}
+.mobile-ongoing-card-period { font-size: 10px; color: var(--gray-600); font-weight: 600; }
+@media (min-width: 1024px) {
+  .mobile-ongoing-strip { display: none !important; }
+}
 
 .mini-cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .mini-cal-month { font-size: 14px; font-weight: 700; }
@@ -1221,8 +1311,25 @@ img {
   line-height: 1.5;
   word-break: break-word;
 }
-.pv2-meta-value .pv2-plats { display: flex; gap: 5px; flex-wrap: wrap; }
-.pv2-meta-value .pv2-plats .picon { width: 26px; height: 26px; font-size: 10px; border-radius: 6px; }
+.pv2-meta-value .pv2-plats { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+/* 메인 필터 탭과 동일 — 배경 박스/텍스트 없이 PNG 로고만 */
+.pv2-meta-value .pv2-plats .picon {
+  width: auto; height: auto; background: transparent !important;
+  border-radius: 0; padding: 0; font-size: 0;
+  display: inline-flex; align-items: center;
+}
+.pv2-meta-value .pv2-plats .picon img {
+  width: 22px !important; height: 22px !important;
+  border-radius: 4px;
+}
+.pv2-meta-value .pv2-plats .picon-etc {
+  width: 22px; height: 22px;
+  background: var(--gray-100) !important;
+  color: var(--gray-600);
+  border-radius: 4px;
+  font-size: 11px; font-weight: 700;
+  justify-content: center;
+}
 .pv2-meta-value .pv2-tier-inline {
   display: inline-flex; align-items: center; gap: 6px;
 }
@@ -1392,10 +1499,18 @@ img {
   position: fixed; top: 0; left: 0;
   width: 280px; padding: 16px;
   background: white; border: 1px solid var(--gray-200);
-  border-radius: 14px; box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-  z-index: 1000;
+  border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+  z-index: 10000; /* 다른 모든 오버레이 위 */
+  isolation: isolate;
 }
 .mnav-popup.open { display: block; }
+.mnav-backdrop {
+  display: none;
+  position: fixed; inset: 0;
+  background: transparent;
+  z-index: 9999;
+}
+.mnav-backdrop.open { display: block; }
 .mnav-label {
   display: block; font-size: 11px; font-weight: 700;
   color: var(--gray-400); margin-bottom: 6px;
@@ -1538,7 +1653,6 @@ img {
         <div class="ptab tier-tab" data-tier="A" onclick="filterTier(this,'A')" style="font-weight:900;color:#c0392b;border-color:#FF6B6B">A</div>
         <div class="ptab tier-tab" data-tier="B" onclick="filterTier(this,'B')" style="font-weight:900;color:#6c5ce7;border-color:#a29bfe">B</div>
         <div class="ptab tier-tab" data-tier="C" onclick="filterTier(this,'C')" style="font-weight:900;color:#00897b;border-color:#55efc4">C</div>
-        <div class="ptab tier-tab" data-tier="D" onclick="filterTier(this,'D')" style="font-weight:900;color:#888">D</div>
       </div>
       <div class="filter-vsep"></div>
       <!-- 연/월 선택 그룹 -->
@@ -1595,6 +1709,12 @@ img {
       <div class="ypick-scroll" id="ypickScroll"></div>
     </div>
 
+    <!-- 모바일/태블릿 전용: 진행중 행사 가로 캐러셀 -->
+    <div class="mobile-ongoing-strip" id="mobileOngoingStrip">
+      <div class="mobile-ongoing-head">LIVE · 진행중 <span id="mobileOngoingCount" style="font-weight:700;margin-left:auto;color:var(--gray-400)"></span></div>
+      <div class="mobile-ongoing-track" id="mobileOngoingTrack"></div>
+    </div>
+
     <!-- 일반 목록 -->
     <div id="mainContent"></div>
 
@@ -1602,6 +1722,10 @@ img {
 
   <!-- RIGHT SIDEBAR -->
   <aside class="sidebar-right">
+    <div class="widget" id="sideOngoingWidget" style="display:none">
+      <div class="widget-title"><div class="widget-dot" style="background:var(--event)"></div>진행중 <span class="side-count" id="sideOngoingCount"></span></div>
+      <div id="sideOngoing"></div>
+    </div>
     <div class="widget">
       <div class="widget-title"><div class="widget-dot"></div><span id="sideStatTitle">이달 현황</span></div>
       <div class="stat-grid" id="sideStats"></div>
@@ -1786,17 +1910,24 @@ function parseEvent(item, cat) {
   let youtubeUrl = '';
 
   // description 전처리: 번호 매김/줄바꿈으로 깨진 키:값 복구
-  //  (A) "1.\n스팀: ..." → "1. 스팀: ..."  (번호만 남은 줄과 다음 줄 병합)
-  //  (B) "9. 공식\n링크: ..." → "9. 공식 링크: ..."  (키가 줄바꿈으로 끊긴 경우)
+  //  (A) "1.\n스팀: ..." → "1. 스팀: ..."
+  //  (B) "9. 공식\n링크: ..." → "9. 공식 링크: ..."
+  //  (C) 같은 줄에 여러 키가 붙어있는 경우 — 알려진 키 앞에 개행 삽입
+  //      예: "스팀: URL플레이스테이션 스토어: URL" → "스팀: URL\n플레이스테이션 스토어: URL"
+  //      예: "프래그마타 (PRAGMATA)출시일: 2026년" → "프래그마타 (PRAGMATA)\n출시일: 2026년"
+  const KEY_SPLIT_RE = /(?!^)(?<![\n：: \-•])(?=(?:출시일|개발사|퍼블리셔|유통사|장르|분류|등급|티어|주요도|추천|이미지|썸네일|플랫폼|기종|100자\s*설명|100자\s*소개|소개|설명|공식\s*사이트|공식\s*링크|공식|홈페이지|유튜브\s*링크|유튜브|스팀|스팀\s*스토어|플레이스테이션|플레이스테이션\s*스토어|엑스박스|엑스박스\s*스토어|닌텐도|닌텐도\s*스토어|구글\s*스토어|구글\s*플레이|애플\s*스토어|앱\s*스토어|appstore|googleplay|official|website)\s*[：:])/g;
   const preDesc = (txt) => (txt || '')
     .replace(/(^|\n)(\d+\.)\s*\n\s*/g, '$1$2 ')
-    .replace(/([가-힣A-Za-z]{1,8})\n\s*(링크|사이트|스토어)\s*[：:]/g, '$1 $2:');
+    .replace(/([가-힣A-Za-z]{1,8})\n\s*(링크|사이트|스토어)\s*[：:]/g, '$1 $2:')
+    .replace(KEY_SPLIT_RE, '\n');
 
-  // 키 정규화: 번호 prefix(1., 10. 등)와 불릿/공백 제거 후 소문자화
+  // 키 정규화
+  //  - 번호 prefix는 "1." 또는 "2 " (점 OR 공백)이 있어야 strip. "100자" 같은 것은 보호.
+  //  - 불릿 문자 / 공백 제거 후 소문자화
   const normKey = (s) => (s || '')
     .trim()
     .replace(/^[\s•\-\*·▪▸►○●◆◇☆★]+/, '')
-    .replace(/^\d+\.?\s*/, '')
+    .replace(/^\d+(?:\.\s*|\s+)/, '')
     .toLowerCase()
     .replace(/\s/g, '');
 
@@ -1898,6 +2029,9 @@ async function loadData() {
   renderSidebar();
 
   if (errors.length) console.warn('일부 캘린더 오류:', errors.join(', '));
+
+  // Deep link 자동 오픈 (공유된 URL의 #ev=... 해시)
+  try { if (typeof openDetailFromHash === 'function') openDetailFromHash(); } catch(e) {}
 }
 
 /* ════════════════════════════════════
@@ -1931,20 +2065,71 @@ function renderAll() {
   const today = now.toISOString().slice(0,10).replace(/-/g,'.');
   const activeEvents = allEvents.filter(ev => ev.cat === '게임 행사' && ev.date <= today && (ev.endDate ? ev.endDate >= today : ev.date === today));
 
-  // 배너에 올라간 이벤트는 목록에서 제외
+  // 진행중 행사는 메인 리스트에서 항상 제외 (사이드바/캐러셀로 이동)
   const activeTitles = new Set(activeEvents.map(e => e.title + e.date));
   const filteredWithoutBanner = filtered.filter(e => !activeTitles.has(e.title + e.date));
 
-  // 필터 적용 시 배너 숨기기 (카테고리/플랫폼/등급 선택된 상태)
+  // 필터 적용 시 Y픽/진행중 숨기기
   const isFiltered = activeCat !== 'all' || activePlat !== '전체' || activeTier !== 'all' || searchQuery;
-  const bannersToShow = isFiltered ? [] : activeEvents;
-
-  // Y픽도 필터 적용 시 숨기기
   if (isFiltered) {
     document.getElementById('ypickSection').classList.remove('visible');
   }
 
-  renderList(filteredWithoutBanner, bannersToShow, isFiltered);
+  // 진행중 → 사이드바 + 모바일 strip (필터 시 숨김)
+  renderOngoing(isFiltered ? [] : activeEvents);
+
+  renderList(filteredWithoutBanner, [], isFiltered);
+}
+
+/* ── 진행중 행사 렌더링 (사이드바 + 모바일 strip) ── */
+function renderOngoing(items) {
+  const sideWidget = document.getElementById('sideOngoingWidget');
+  const sideBox = document.getElementById('sideOngoing');
+  const sideCnt = document.getElementById('sideOngoingCount');
+  const mobStrip = document.getElementById('mobileOngoingStrip');
+  const mobTrack = document.getElementById('mobileOngoingTrack');
+  const mobCnt = document.getElementById('mobileOngoingCount');
+
+  if (!items.length) {
+    if (sideWidget) sideWidget.style.display = 'none';
+    if (mobStrip) mobStrip.classList.remove('visible');
+    return;
+  }
+
+  // 사이드바 (PC)
+  if (sideWidget && sideBox) {
+    sideWidget.style.display = '';
+    if (sideCnt) sideCnt.textContent = items.length + '건';
+    sideBox.innerHTML = items.map(ev => {
+      const idx = eventStore.indexOf(ev) !== -1 ? eventStore.indexOf(ev) : (() => { eventStore.push(ev); return eventStore.length - 1; })();
+      const period = ev.endDate ? (ev.date.slice(5) + '~' + ev.endDate.slice(5)) : ev.date.slice(5);
+      const img = ev.imageUrl ? '<img src="' + ev.imageUrl + '" onerror="this.style.display=\'none\'" alt="" loading="lazy">' : '';
+      return '<div class="side-ongoing-item" onclick="openDetail(' + idx + ')">'
+        + '<div class="side-ongoing-thumb">' + img + '</div>'
+        + '<div class="side-ongoing-body">'
+          + '<div class="side-ongoing-title">' + ev.title + '</div>'
+          + '<div class="side-ongoing-period">📅 ' + period + '</div>'
+          + '<span class="side-ongoing-live">진행중</span>'
+        + '</div></div>';
+    }).join('');
+  }
+
+  // 모바일 캐러셀
+  if (mobStrip && mobTrack) {
+    mobStrip.classList.add('visible');
+    if (mobCnt) mobCnt.textContent = items.length + '건';
+    mobTrack.innerHTML = items.map(ev => {
+      const idx = eventStore.indexOf(ev) !== -1 ? eventStore.indexOf(ev) : (() => { eventStore.push(ev); return eventStore.length - 1; })();
+      const period = ev.endDate ? (ev.date.slice(5) + ' ~ ' + ev.endDate.slice(5)) : ev.date.slice(5);
+      const img = ev.imageUrl ? '<img src="' + ev.imageUrl + '" onerror="this.style.display=\'none\'" alt="" loading="lazy">' : '';
+      return '<div class="mobile-ongoing-card" onclick="openDetail(' + idx + ')">'
+        + '<div class="mobile-ongoing-card-thumb">' + img + '<span class="mobile-ongoing-card-live">LIVE</span></div>'
+        + '<div class="mobile-ongoing-card-body">'
+          + '<div class="mobile-ongoing-card-title">' + ev.title + '</div>'
+          + '<div class="mobile-ongoing-card-period">' + period + '</div>'
+        + '</div></div>';
+    }).join('');
+  }
 }
 
 /* ── Y PICK ── */
@@ -2344,14 +2529,39 @@ function openSearch() {
 
 
 function shareEvent(e) {
-  e.stopPropagation();
-  const url = window.location.href;
+  if (e && e.stopPropagation) e.stopPropagation();
+
+  // 현재 열려있는 이벤트 찾기 (detail 패널이 열려있으면 해시의 slug → 이벤트)
+  let shareTitle = document.title || 'Game Calendar';
+  let shareText = '';
+  let shareUrl = window.location.href;
+
+  try {
+    const m = (location.hash || '').match(/[#&]ev=([^&]+)/);
+    if (m) {
+      const slug = decodeURIComponent(m[1]);
+      const list = (typeof allEvents !== 'undefined' && allEvents.length) ? allEvents : eventStore;
+      const ev = list.find(x => makeEventSlug(x) === slug);
+      if (ev) {
+        shareTitle = ev.title + ' — Game Calendar';
+        shareText = ev.cat + ' · ' + ev.date + (ev.endDate ? ' ~ ' + ev.endDate : '');
+        // 해시 포함 URL 보장
+        const base = location.origin + location.pathname + location.search;
+        shareUrl = base + '#ev=' + encodeURIComponent(slug);
+      }
+    }
+  } catch(err) {}
+
   if (navigator.share) {
-    navigator.share({ title: document.title, url });
-  } else {
-    navigator.clipboard.writeText(url).then(() => {
-      alert('링크가 복사됐습니다.');
+    navigator.share({ title: shareTitle, text: shareText, url: shareUrl }).catch(() => {});
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      alert('링크가 복사됐습니다.\n' + shareUrl);
+    }).catch(() => {
+      prompt('아래 링크를 복사하세요', shareUrl);
     });
+  } else {
+    prompt('아래 링크를 복사하세요', shareUrl);
   }
 }
 
@@ -2480,11 +2690,14 @@ function openDetail(evOrIdx) {
   const platHtml = ev.plat.length ? makePlatHtml(ev.plat, 16) : '<span style="color:var(--gray-400)">—</span>';
 
   // description 원본 정제 — parseEvent와 동일 원칙으로 정규화
-  //  (A) "1.\n스팀: ..." 같이 번호 줄과 다음 줄 분리된 경우 병합
-  //  (B) "9. 공식\n링크: ..." 처럼 키가 줄바꿈된 경우 병합
+  //  (A) "1.\n스팀: ..." 병합
+  //  (B) "9. 공식\n링크: ..." 병합
+  //  (C) 같은 줄에 여러 키가 붙어있는 경우(예: "스팀: URL플레이스테이션 스토어: URL") 키 앞에 개행 삽입
+  const KEY_SPLIT_RE_PANEL = /(?!^)(?<![\n：: \-•])(?=(?:출시일|개발사|퍼블리셔|유통사|장르|분류|등급|티어|주요도|추천|이미지|썸네일|플랫폼|기종|100자\s*설명|100자\s*소개|소개|설명|공식\s*사이트|공식\s*링크|공식|홈페이지|유튜브\s*링크|유튜브|스팀|스팀\s*스토어|플레이스테이션|플레이스테이션\s*스토어|엑스박스|엑스박스\s*스토어|닌텐도|닌텐도\s*스토어|구글\s*스토어|구글\s*플레이|애플\s*스토어|앱\s*스토어|appstore|googleplay|official|website)\s*[：:])/g;
   const preDescPanel = (txt) => (txt || '')
     .replace(/(^|\n)(\d+\.)\s*\n\s*/g, '$1$2 ')
-    .replace(/([가-힣A-Za-z]{1,8})\n\s*(링크|사이트|스토어)\s*[：:]/g, '$1 $2:');
+    .replace(/([가-힣A-Za-z]{1,8})\n\s*(링크|사이트|스토어)\s*[：:]/g, '$1 $2:')
+    .replace(KEY_SPLIT_RE_PANEL, '\n');
 
   const rawDesc = ev.raw?.description ? preDescPanel(stripHtml(ev.raw.description)) : '';
 
@@ -2501,7 +2714,7 @@ function openDetail(evOrIdx) {
   const descLines = [];
 
   rawDesc.split('\n').forEach(line => {
-    // 선행 불릿/공백/번호 prefix 정제
+    // 선행 불릿/공백 정제
     let bare = line.replace(/^[\s•\-\*·▪▸►○●◆◇]+/, '').trim();
     if (!bare) return;
     // 순수 URL 라인 제거
@@ -2514,10 +2727,11 @@ function openDetail(evOrIdx) {
     // 키:값 분리 (번호 prefix도 키에서 함께 벗겨냄)
     const km = bare.match(/^([^:：]{1,24})[：:]\s*(.*)$/);
     if (km) {
+      // "100자" 보호 — 점 OR 공백이 디지트 뒤에 있어야 strip
       const key = km[1]
         .trim()
         .replace(/^[\s•\-\*·▪▸►○●◆◇☆★]+/, '')
-        .replace(/^\d+\.?\s*/, '')
+        .replace(/^\d+(?:\.\s*|\s+)/, '')
         .toLowerCase()
         .replace(/\s/g, '');
       const val = km[2].trim();
@@ -2545,7 +2759,7 @@ function openDetail(evOrIdx) {
     : '';
   const yBadge = (ev.tier && ev.tier.charAt(0) === 'S') ? `<span class="panel-y-badge">🔥 GAMEY PICK</span>` : '';
   // S등급은 GAMEY PICK 배지로 대체, 나머지만 등급 배지 표시
-  const tierBadge = (ev.tier && ev.tier.charAt(0) !== 'S') ? `<span class="tier-badge tier-${ev.tier.charAt(0)} panel-tier-badge">${ev.tier.charAt(0)} 등급</span>` : '';
+  const tierBadge = (ev.tier && ev.tier.charAt(0) !== 'S') ? `<span class="tier-badge tier-${ev.tier.charAt(0)} panel-tier-badge">${ev.tier.charAt(0)}</span>` : '';
   const classifyBadge = ev.classify ? `<span class="badge badge-genre">${ev.classify}</span>` : '';
 
   // Google Calendar 링크
@@ -2740,12 +2954,58 @@ function openDetail(evOrIdx) {
   panel.classList.add('open');
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
+
+  // ── Deep link: URL 해시에 이벤트 slug 반영 (공유용)
+  try {
+    const slug = makeEventSlug(ev);
+    if (slug) {
+      const newHash = '#ev=' + encodeURIComponent(slug);
+      if (location.hash !== newHash) history.replaceState(null, '', newHash);
+    }
+  } catch(e) {}
+}
+
+// 이벤트 → URL용 slug (날짜_제목, URL-safe)
+function makeEventSlug(ev) {
+  if (!ev || !ev.date || !ev.title) return '';
+  const d = (ev.date || '').replace(/\./g, '');   // 2026.04.17 → 20260417
+  const t = ev.title.replace(/[\s\/\\?#&=%+]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  return d + '_' + t;
+}
+
+// slug로 eventStore에서 이벤트 찾기
+function findEventBySlug(slug) {
+  if (!slug) return -1;
+  const list = (typeof allEvents !== 'undefined' && allEvents.length) ? allEvents : eventStore;
+  for (let i = 0; i < list.length; i++) {
+    if (makeEventSlug(list[i]) === slug) {
+      // eventStore에 등록 후 인덱스 반환
+      const idx = eventStore.indexOf(list[i]);
+      if (idx !== -1) return idx;
+      eventStore.push(list[i]);
+      return eventStore.length - 1;
+    }
+  }
+  return -1;
+}
+
+// 페이지 로드 후 이벤트들이 준비되면 해시 보고 자동 오픈
+function openDetailFromHash() {
+  const m = (location.hash || '').match(/[#&]ev=([^&]+)/);
+  if (!m) return;
+  const slug = decodeURIComponent(m[1]);
+  const idx = findEventBySlug(slug);
+  if (idx >= 0) openDetail(idx);
 }
 
 function closeDetail() {
   document.getElementById('detailPanel').classList.remove('open');
   document.getElementById('panelOverlay').classList.remove('open');
   document.body.style.overflow = '';
+  // 해시에서 이벤트 파라미터 제거 (뒤로가기 내비용)
+  if (location.hash && /[#&]ev=/.test(location.hash)) {
+    history.replaceState(null, '', location.pathname + location.search);
+  }
 }
 
 // ESC 키로 닫기
@@ -3194,28 +3454,30 @@ function mnavInit() {
   mnavRenderMonthGrid();
   mnavUpdateBtnLabel();
 
-  // Fallback: 버튼에 직접 이벤트 리스너 바인딩 (onclick 인라인이 혹시 무력화된 경우 대비)
+  // ── 팝업을 body 직속으로 포털링 (sticky filter-bar의 overflow에서 탈출)
+  const pop = document.getElementById('mnavPopup');
+  if (pop && pop.parentElement !== document.body) {
+    document.body.appendChild(pop);
+  }
+  // 클릭 가로채기용 투명 백드롭 추가 (body 직속)
+  if (!document.getElementById('mnavBackdrop')) {
+    const bd = document.createElement('div');
+    bd.id = 'mnavBackdrop';
+    bd.className = 'mnav-backdrop';
+    bd.addEventListener('click', mnavClose);
+    document.body.appendChild(bd);
+  }
+
+  // 버튼 바인딩
   const btn = document.getElementById('mnavBtn');
   if (btn) {
+    btn.onclick = null; // 인라인 핸들러 무력화 후 addEventListener로 통일
     btn.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
       toggleMnav(e);
     });
-    console.log('[mnav] 버튼 이벤트 리스너 바인딩 완료');
-  } else {
-    console.warn('[mnav] mnavBtn 요소를 찾을 수 없음');
   }
-
-  // 바깥 클릭 닫기
-  document.addEventListener('click', (e) => {
-    const pop = document.getElementById('mnavPopup');
-    const btn2 = document.getElementById('mnavBtn');
-    if (!pop || !btn2) return;
-    if (pop.classList.contains('open') && !pop.contains(e.target) && !btn2.contains(e.target)) {
-      mnavClose();
-    }
-  });
 
   // ESC 닫기
   document.addEventListener('keydown', (e) => {
@@ -3254,19 +3516,18 @@ function toggleMnav(ev) {
   if (ev) { ev.preventDefault(); ev.stopPropagation(); }
   const pop = document.getElementById('mnavPopup');
   const btn = document.getElementById('mnavBtn');
-  if (!pop || !btn) { console.warn('[mnav] 요소 없음'); return; }
+  const bd = document.getElementById('mnavBackdrop');
+  if (!pop || !btn) return;
   const isOpen = pop.classList.contains('open');
-  console.log('[mnav] 토글 전 상태:', isOpen ? '열림' : '닫힘');
   if (isOpen) {
     mnavClose();
   } else {
-    // 다른 드롭다운들 닫기
     document.querySelectorAll('.user-menu.open').forEach(el => el.classList.remove('open'));
     mnavPositionPopup();
     pop.classList.add('open');
+    if (bd) bd.classList.add('open');
     btn.classList.add('active');
     btn.setAttribute('aria-expanded', 'true');
-    console.log('[mnav] 팝업 열림, 위치:', pop.style.top, pop.style.left);
   }
 }
 
@@ -3321,7 +3582,9 @@ window.addEventListener('resize', () => {
 function mnavClose() {
   const pop = document.getElementById('mnavPopup');
   const btn = document.getElementById('mnavBtn');
+  const bd = document.getElementById('mnavBackdrop');
   if (pop) pop.classList.remove('open');
+  if (bd) bd.classList.remove('open');
   if (btn) {
     btn.classList.remove('active');
     btn.setAttribute('aria-expanded', 'false');
