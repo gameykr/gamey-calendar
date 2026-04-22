@@ -1783,13 +1783,33 @@ window.imgFallback = function(img) {
         return;
       }
     }
+    // wsrv 프록시가 실패했고 원본 URL이 data-origin에 있으면 원본으로 1회 재시도
+    if (img.dataset && img.dataset.origin && img.src !== img.dataset.origin) {
+      img.src = img.dataset.origin;
+      img.removeAttribute('data-origin');
+      return;
+    }
     // 최종 폴백: 숨김
     img.style.display = 'none';
-    // 부모 컨테이너에 fallback 표시용 클래스 추가 (CSS 그라디언트로 대체)
     if (img.parentElement) img.parentElement.classList.add('img-failed');
   } catch(e) {
     img.style.display = 'none';
   }
+};
+
+/* ════ 이미지 프록시 (hotlink 차단 우회 + 600px 리사이즈) ════
+   Steam CDN, Capcom CDN 등 hotlink 차단 사이트를 wsrv.nl 프록시로 우회.
+   user memory 규칙: 기본 너비 600px + webp 변환으로 용량 절감. */
+window.proxyImg = function(url) {
+  if (!url) return '';
+  // 데이터/blob URL, 이미 프록시된 URL, YouTube 썸네일은 건드리지 않음
+  if (/^(data:|blob:)/i.test(url)) return url;
+  if (/wsrv\.nl|weserv\.nl/i.test(url)) return url;
+  if (/img\.youtube\.com/i.test(url)) return url; // YouTube는 referrerpolicy로 충분
+  if (!/^https?:\/\//i.test(url)) return url;
+  // wsrv.nl 래핑: protocol 제외 URL을 url 파라미터에 넣고 너비 600 + webp
+  var bare = url.replace(/^https?:\/\//i, '');
+  return 'https://wsrv.nl/?url=' + encodeURIComponent(bare) + '&w=600&output=webp&q=85';
 };
 
 /* ════ 플랫폼 아이콘 ════ */
@@ -2135,7 +2155,7 @@ function renderOngoing(items) {
     sideBox.innerHTML = items.map(ev => {
       const idx = eventStore.indexOf(ev) !== -1 ? eventStore.indexOf(ev) : (() => { eventStore.push(ev); return eventStore.length - 1; })();
       const period = ev.endDate ? (ev.date.slice(5) + '~' + ev.endDate.slice(5)) : ev.date.slice(5);
-      const img = ev.imageUrl ? '<img src="' + ev.imageUrl + '" referrerpolicy="no-referrer" onerror="imgFallback(this)" alt="" loading="lazy">' : '';
+      const img = ev.imageUrl ? '<img src="' + proxyImg(ev.imageUrl) + '" data-origin="' + ev.imageUrl + '" referrerpolicy="no-referrer" onerror="imgFallback(this)" alt="" loading="lazy">' : '';
       return '<div class="side-ongoing-item" onclick="openDetail(' + idx + ')">'
         + '<div class="side-ongoing-thumb">' + img + '</div>'
         + '<div class="side-ongoing-body">'
@@ -2153,7 +2173,7 @@ function renderOngoing(items) {
     mobTrack.innerHTML = items.map(ev => {
       const idx = eventStore.indexOf(ev) !== -1 ? eventStore.indexOf(ev) : (() => { eventStore.push(ev); return eventStore.length - 1; })();
       const period = ev.endDate ? (ev.date.slice(5) + ' ~ ' + ev.endDate.slice(5)) : ev.date.slice(5);
-      const img = ev.imageUrl ? '<img src="' + ev.imageUrl + '" referrerpolicy="no-referrer" onerror="imgFallback(this)" alt="" loading="lazy">' : '';
+      const img = ev.imageUrl ? '<img src="' + proxyImg(ev.imageUrl) + '" data-origin="' + ev.imageUrl + '" referrerpolicy="no-referrer" onerror="imgFallback(this)" alt="" loading="lazy">' : '';
       return '<div class="mobile-ongoing-card" onclick="openDetail(' + idx + ')">'
         + '<div class="mobile-ongoing-card-thumb">' + img + '<span class="mobile-ongoing-card-live">LIVE</span></div>'
         + '<div class="mobile-ongoing-card-body">'
@@ -2181,7 +2201,7 @@ function renderYPick(picks) {
     const dateLabel = ev.endDate ? `${ev.date} ~ ${ev.endDate}` : ev.date;
     const thumbStyle = getThumbGradient(ev.cat);
     const imgTag = ev.imageUrl
-      ? `<img src="${ev.imageUrl}" referrerpolicy="no-referrer" onerror="imgFallback(this)" alt="" loading="lazy" decoding="async" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:1;">`
+      ? `<img src="${proxyImg(ev.imageUrl)}" data-origin="${ev.imageUrl}" referrerpolicy="no-referrer" onerror="imgFallback(this)" alt="" loading="lazy" decoding="async" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:1;">`
       : '';
     return `
     <div class="ypick-card" onclick="openDetail(${ypickIdx})" style="cursor:pointer">
@@ -2208,7 +2228,7 @@ function renderEventBanners(evItems) {
     const dateLabel = ev.endDate ? `${ev.date} ~ ${ev.endDate}` : ev.date;
     const platLabel = ev.plat.join(' · ') || '';
     const imgHtml = ev.imageUrl
-      ? `<img src="${ev.imageUrl}" referrerpolicy="no-referrer" onerror="imgFallback(this)" alt=""
+      ? `<img src="${proxyImg(ev.imageUrl)}" data-origin="${ev.imageUrl}" referrerpolicy="no-referrer" onerror="imgFallback(this)" alt=""
              loading="lazy" decoding="async"
              style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;">`
       : '';
@@ -2308,7 +2328,7 @@ function renderCard(ev) {
   const dateLabel = ev.endDate ? `${ev.date} ~ ${ev.endDate}` : ev.date;
   const classifyBadge = ev.classify ? `<span class="badge badge-genre">${ev.classify}</span>` : '';
   const imgHtml = ev.imageUrl
-    ? `<img src="${ev.imageUrl}" referrerpolicy="no-referrer" onerror="imgFallback(this)" alt=""
+    ? `<img src="${proxyImg(ev.imageUrl)}" data-origin="${ev.imageUrl}" referrerpolicy="no-referrer" onerror="imgFallback(this)" alt=""
            loading="lazy" decoding="async"
            style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;">`
     : '';
@@ -2797,7 +2817,7 @@ function openDetail(evOrIdx) {
 
   const heroStyle = getThumbGradient(ev.cat);
   const imgTag = ev.imageUrl
-    ? `<img src="${ev.imageUrl}" referrerpolicy="no-referrer" onerror="imgFallback(this)" alt="" loading="lazy" decoding="async" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;">`
+    ? `<img src="${proxyImg(ev.imageUrl)}" data-origin="${ev.imageUrl}" referrerpolicy="no-referrer" onerror="imgFallback(this)" alt="" loading="lazy" decoding="async" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;">`
     : '';
   const yBadge = (ev.tier && ev.tier.charAt(0) === 'S') ? `<span class="panel-y-badge">🔥 GAMEY PICK</span>` : '';
   // S등급은 GAMEY PICK 배지로 대체, 나머지만 등급 배지 표시
